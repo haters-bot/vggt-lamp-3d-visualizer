@@ -33,6 +33,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_pair(path_a: Path, path_b: Path, image_size: int) -> torch.Tensor:
+    assert path_a.is_file() and path_b.is_file(), f"missing images: {path_a}, {path_b}"
+    assert image_size > 0, f"invalid image size: {image_size}"
     transform = build_image_transform(image_size)
     tensors = []
     for path in (path_a, path_b):
@@ -78,9 +80,9 @@ def main() -> None:
     dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
     bundle = args.bundle.resolve()
 
-    model = load_backbone(args.vggt_weight, device, dtype)
-    images = load_pair(args.image_a, args.image_b, args.image_size).to(device=device, dtype=dtype)
-    features = pooled_pair_features(model, images, dtype)
+    model = load_backbone(args.vggt_weight, device, torch.float32)
+    images = load_pair(args.image_a, args.image_b, args.image_size).to(device=device, dtype=torch.float32)
+    features = pooled_pair_features(model, images, dtype).half().float()
     del model, images
     if device.type == "cuda":
         torch.cuda.empty_cache()
