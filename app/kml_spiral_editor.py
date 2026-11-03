@@ -7,6 +7,9 @@ import argparse
 import csv
 import json
 import math
+import mimetypes
+import sys
+from urllib.parse import unquote
 import threading
 import urllib.error
 import urllib.request
@@ -21,6 +24,9 @@ EARTH_RADIUS_M = 6_378_137.0
 PROJECT_DIR = Path(__file__).resolve().parent
 DEFAULT_KML = PROJECT_DIR / "examples" / "Tour_1565.kml"
 HTML_TEMPLATE = PROJECT_DIR / "three_editor.html"
+sys.path.insert(0, str(PROJECT_DIR.parent / "remote_tools"))
+from image_order import ordered_images
+
 UAV_IMAGE_DIR = PROJECT_DIR.parent / "reconstruction_inputs" / "building_1565_images_01_50"
 
 
@@ -177,20 +183,23 @@ def export_preview(samples: list[LookAtSample], destination: Path) -> None:
     plt.close(figure)
 
 
-def build_html(samples: list[LookAtSample], summary: dict) -> str:
+def build_html(samples: list[LookAtSample], summary: dict, images: list[Path]) -> str:
     if not HTML_TEMPLATE.is_file():
         raise FileNotFoundError(f"3D editor template not found: {HTML_TEMPLATE}")
-    payload = {"points": [asdict(sample) for sample in samples], "summary": summary}
+    payload = {"points": [asdict(sample) for sample in samples], "summary": summary, "images": [p.name for p in images]}
     template = HTML_TEMPLATE.read_text(encoding="utf-8")
     return template.replace(
         "__INITIAL_DATA__",
-        json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+        json.dumps(payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")).replace("<", "\\u003c"),
     )
 
 
-def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str) -> None:
+def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str, images: list[Path]) -> None:
     page = html.encode("utf-8")
+    image_paths = {p.name: p for p in images}
     assets = {
+        "/orbit_math.js": PROJECT_DIR / "orbit_math.js",
+        "/rendering.js": PROJECT_DIR / "rendering.js",
         "/vendor/three.module.js": PROJECT_DIR / "vendor" / "three.module.js",
         "/vendor/GLTFLoader.js": PROJECT_DIR / "vendor" / "GLTFLoader.js",
         "/vendor/BufferGeometryUtils.js": PROJECT_DIR / "vendor" / "BufferGeometryUtils.js",
@@ -200,17 +209,17 @@ def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str
         def do_GET(self) -> None:  # noqa: N802
             request_path = self.path.split("?", 1)[0]
             if request_path.startswith("/uav-images/"):
-                name = request_path.rsplit("/", 1)[-1]
-                if not name.startswith("image-") or not name.endswith(".jpeg") or "/" in name or "\\" in name:
-                    self.send_error(400)
+                name = unquote(request_path[len("/uav-images/"):])
+                if name not in image_paths:
+                    self.send_error(404, "Image not in configured directory")
                     return
-                path = UAV_IMAGE_DIR / name
+                path = image_paths[name]
                 if not path.is_file():
                     self.send_error(404)
                     return
                 content = path.read_bytes()
                 self.send_response(200)
-                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Type", mimetypes.guess_type(path.name)[0] or "application/octet-stream")
                 self.send_header("Content-Length", str(len(content)))
                 self.send_header("Cache-Control", "public, max-age=3600")
                 self.end_headers()
@@ -295,6 +304,7 @@ def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kml", type=Path, default=DEFAULT_KML, help="Input KML containing LookAt samples")
+    parser.add_argument("--image-dir", type=Path, default=UAV_IMAGE_DIR, help="Images in numeric filename/input order")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=7872)
     parser.add_argument(
@@ -311,8 +321,12 @@ def main() -> None:
 
     if not args.kml.is_file():
         parser.error(f"KML file not found: {args.kml}")
+    images = ordered_images(args.image_dir)
+    assert HTML_TEMPLATE.is_file(), f"missing template: {HTML_TEMPLATE}"
+    for destination in (args.export_csv, args.export_preview, args.export_html):
+        assert destination is None or not destination.exists(), f"refusing to overwrite: {destination}"
     samples, summary = parse_kml_lookat(args.kml)
-    html = build_html(samples, summary)
+    html = build_html(samples, summary, images)
     if args.export_csv:
         write_csv(samples, args.export_csv)
         print(f"CSV: {args.export_csv}")
@@ -328,7 +342,7 @@ def main() -> None:
         f"range {summary['range_min_m']:.1f} to {summary['range_max_m']:.1f} m"
     )
     if not args.no_serve:
-        serve(html, args.host, args.port, not args.no_browser, args.lamp_api_url)
+        serve(html, args.host, args.port, not args.no_browser, args.lamp_api_url, images)
 
 
 if __name__ == "__main__":

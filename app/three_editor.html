@@ -39,14 +39,18 @@
   <div id="trajectoryReport" class="report">加载 GLB 后生成相机轨迹。</div>
 
   <h3>LaMP 两图相对定位</h3>
-  <div class="hint">选择起始图和目标图，由远程 LaMP 模型预测目标图在当前 VGGT 轨迹上的位置。</div>
+  <div class="hint">选择起始图和目标图；优先读取本地预测缓存，未命中时调用 LaMP 服务。图片顺序须与 GLB 相机一致。</div>
+  <label>加载预测缓存 JSON<input id="lampCacheFile" type="file" accept=".json,application/json"></label>
+  <div id="cacheReport" class="hint">未加载缓存；图片来自服务启动时的 --image-dir。</div>
+  <label>预测点放置模式<select id="placementMode"><option value="angle" selected>angle on fitted orbit</option><option value="range">range</option></select></label>
+  <div class="hint">angle 使用旋转测地角 [0°,180°]，沿输入顺序选首个交点，无法区分整圈前后半圈。range 输出未在真实图上验证。</div>
   <div class="pair-grid">
     <div class="pair-card"><img id="lampImageA" alt="起始图"><label>起始图<select id="lampFrameA"></select></label></div>
     <div class="pair-card"><img id="lampImageB" alt="目标图"><label>目标图<select id="lampFrameB"></select></label></div>
   </div>
   <button id="runLamp" class="primary" style="width:100%;margin-top:8px">预测目标位置</button>
   <div class="lamp-legend"><span style="--c:#36a7ff">起始位置</span><span style="--c:#ff9f32">预测位置</span><span style="--c:#4ee081">VGGT目标位置</span></div>
-  <div id="lampReport" class="report">远程推理服务连接后即可预测。</div>
+  <div id="lampReport" class="report">加载预测缓存即可离线使用；未命中时调用服务。</div>
 
   <h3>自动扶正与贴地</h3>
   <button id="autoGround" class="primary" style="width:100%">重新自动贴地</button>
@@ -58,7 +62,7 @@
     <summary>高级校准（自动贴地失败时使用）</summary>
     <div class="advanced-body">
       <div id="advancedControls"></div>
-      <div class="checks"><label><input id="showBasePlane" type="checkbox" checked>显示检测底面</label></div>
+      <div class="checks"><label><input id="showBasePlane" type="checkbox">显示检测底面</label></div>
       <div class="buttons"><button id="flipGround">上下翻转</button><button id="resetAlignment">重置场景姿态</button></div>
       <div class="buttons"><button id="saveAlignment" class="primary">保存当前姿态</button><button id="restoreAlignment">加载已保存</button></div>
     </div>
@@ -68,13 +72,20 @@
   <label>轨迹颜色<input id="curveColor" type="color" value="#ff4d5a" style="width:100%;height:34px"></label>
 
   <h3>显示</h3>
-  <label>显示点数<select id="pointBudget"><option value="100000">10 万（流畅）</option><option value="250000" selected>25 万（推荐）</option><option value="500000">50 万</option><option value="1000000">100 万（高负载）</option></select></label>
+  <label>背景<select id="background"><option value="#0b1220">原深色（默认）</option><option value="#000000">黑</option><option value="#ffffff">白</option></select></label>
+  <label>显示点数<select id="pointBudget"><option value="100000">10 万</option><option value="250000">25 万</option><option value="500000">50 万</option><option value="1000000" selected>100 万（默认）</option><option value="2000000">200 万</option><option value="3000000">300 万</option></select></label>
   <div id="displayControls"></div>
   <div class="checks">
-    <label><input id="showGrid" type="checkbox" checked>参考平面</label>
-    <label><input id="showAxes" type="checkbox" checked>坐标轴</label>
+    <label><input id="showGrid" type="checkbox">网格 / 参考平面</label>
+    <label><input id="showAxes" type="checkbox">坐标轴</label>
     <label><input id="showCameras" type="checkbox" checked>VGGT 相机</label>
     <label><input id="showCurve" type="checkbox" checked>环绕轨迹</label>
+  </div>
+  <div class="checks">
+    <label><input id="roundSplats" type="checkbox" checked>圆形 splat</label>
+    <label><input id="useEDL" type="checkbox" checked>EDL 深度增强</label>
+    <label><input id="showPoints" type="checkbox" checked>点云图层</label>
+    <label><input id="showMesh" type="checkbox" checked>网格模型图层</label>
   </div>
   <div class="buttons"><button id="fitView" class="primary">适配视角</button><button id="resetView">重置视角</button></div>
   <div class="hint">左键拖动旋转；右键拖动平移；滚轮缩放；单击轨迹生成该位置的模拟航拍视角。贴地使用点云低分位数抑制漂浮噪点。</div>
@@ -86,6 +97,7 @@
     <div class="preview-head"><span>轨迹视角 · 点云模拟航拍图</span><button id="closePreview">关闭</button></div>
     <div id="previewCanvas" class="preview-canvas"></div>
     <div class="preview-tools"><select id="previewMode"><option value="camera">插值 VGGT 镜头朝向</option><option value="center">始终朝向建筑中心</option></select><button id="downloadPreview">保存图片</button></div>
+    <label style="display:block;padding:0 8px 8px">保存分辨率<select id="previewResolution"><option value="440x300">440 × 300</option><option value="1280x720">1280 × 720</option><option value="1920x1080">1920 × 1080</option></select></label>
     <div id="previewMeta" class="preview-meta">请单击轨迹上的任意位置。</div>
   </div>
   <div id="status" class="status">三维组件加载中…</div>
@@ -96,14 +108,16 @@
 <script type="module">
 import * as THREE from '/vendor/three.module.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
+import {configureSplat, EyeDomeRenderer} from '/rendering.js';
+import {fitOrbit, relativeBearing, pointAtAngle, validateCache} from '/orbit_math.js';
 
 const $=id=>document.getElementById(id), viewer=$('viewer'), statusEl=$('status');
-const MAX_SOURCE_POINTS=1000000;
+const MAX_SOURCE_POINTS=3000000;
 const RECOMMENDED={modelYaw:13.5,modelPitch:-45,modelRoll:0,modelLift:0,modelScale:.92};
 const SPECS={
   modelControls:[['modelYaw','模型方位角',-180,180,.5,'°'],['modelScale','模型尺寸',.2,3,.01,'×']],
   advancedControls:[['modelPitch','模型俯仰角',-180,180,.5,'°'],['modelRoll','模型侧倾角',-180,180,.5,'°'],['modelLift','模型离地高度',-4,4,.01,'']],
-  displayControls:[['pointSize','点云大小',.002,.04,.001,'',.012]]
+  displayControls:[['pointSize','点大小（世界单位）',.0001,.1,.0001,'随场景包围盒初始化',.012]]
 };
 const allSpecs=Object.values(SPECS).flat();
 function buildControls(){Object.entries(SPECS).forEach(([containerId,specs])=>{const host=$(containerId);specs.forEach(([id,label,min,max,step,unit,override])=>{const initial=override??RECOMMENDED[id]??0;host.insertAdjacentHTML('beforeend',`<div class="control"><div class="control-head"><label for="${id}">${label}</label><input id="${id}Number" type="number" min="${min}" max="${max}" step="${step}" value="${initial}"></div><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${initial}"><span class="hint" id="${id}Unit">${unit}</span></div>`);});});}
@@ -115,6 +129,7 @@ function setValues(values){Object.entries(values).forEach(([id,v])=>{if(!$(id)||
 function getValues(){return Object.fromEntries([...Object.keys(RECOMMENDED),'pointSize'].map(id=>[id,number(id,id==='pointSize'?0.012:RECOMMENDED[id])]));}
 function setStatus(text){statusEl.textContent=text;}
 
+let mainEDL,previewEDL;
 let currentModelName='';
 let renderer,scene,camera,grid,axes,modelRoot,autoAlignGroup,modelContent,curveGroup,curveLine,cameraPathPoints,basePlaneMesh,previewRenderer,previewCamera,selectionMarker,fittedSpline,lampMarkerGroup;
 let rawCameraCenters=[],rawCameraFrames=[],cameraMeshes=[],curveSamples=[],modelPointSample=[],cameraCentersInModel=[],detectedBasePlane=null;
@@ -124,16 +139,34 @@ function init(){
   scene=new THREE.Scene();scene.background=new THREE.Color(0x0b1220);
   camera=new THREE.PerspectiveCamera(45,1,.01,10000);
   renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));viewer.appendChild(renderer.domElement);
-  previewCamera=new THREE.PerspectiveCamera(42,440/300,.01,10000);previewRenderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});previewRenderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));previewRenderer.setSize(440,300,false);$('previewCanvas').appendChild(previewRenderer.domElement);
+  previewCamera=new THREE.PerspectiveCamera(42,440/300,.01,10000);previewRenderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});previewRenderer.setPixelRatio(1);previewRenderer.setSize(440,300,false);$('previewCanvas').appendChild(previewRenderer.domElement);mainEDL=new EyeDomeRenderer(renderer);previewEDL=new EyeDomeRenderer(previewRenderer);
   scene.add(new THREE.HemisphereLight(0xdbeafe,0x172033,2.1));const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(4,8,6);scene.add(light);
-  grid=new THREE.GridHelper(20,20,0x58708f,0x26364e);axes=new THREE.AxesHelper(2);scene.add(grid,axes);
+  grid=new THREE.GridHelper(20,20,0x58708f,0x26364e);axes=new THREE.AxesHelper(2);scene.add(grid,axes);grid.visible=$('showGrid').checked;axes.visible=$('showAxes').checked;
   initLampControls();resize();$('summary').textContent='等待 VGGT / GLB 模型';setStatus('请选择 GLB 文件，工具将直接拟合相机拍摄轨迹');
 }
 
-function imageUrl(frame){return `/uav-images/image-${String(frame).padStart(2,'0')}.jpeg`;}
-function updateLampThumbnails(){$('lampImageA').src=imageUrl(number('lampFrameA',1));$('lampImageB').src=imageUrl(number('lampFrameB',10));}
-function initLampControls(){for(const id of['lampFrameA','lampFrameB'])for(let frame=1;frame<=50;frame++)$(id).insertAdjacentHTML('beforeend',`<option value="${frame}">image-${String(frame).padStart(2,'0')}</option>`);$('lampFrameA').value='1';$('lampFrameB').value='10';updateLampThumbnails();}
-function requestRender(){if(renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;updateCamera();renderer.render(scene,camera);});}
+let lampCache=null,lastLampResult=null,lampRequestGeneration=0;
+let imageNames=window.INITIAL_DATA.images||Array.from({length:50},(_,i)=>`image-${String(i+1).padStart(2,'0')}.jpeg`);
+function imageUrl(frame){return `/uav-images/${encodeURIComponent(imageNames[frame-1])}`;}
+function updateLampThumbnails(){
+  $('lampImageA').src=imageUrl(number('lampFrameA',1));$('lampImageB').src=imageUrl(number('lampFrameB',10));
+}
+function initLampControls(){
+  for(const id of ['lampFrameA','lampFrameB']){const select=$(id);select.replaceChildren();imageNames.forEach((name,index)=>select.add(new Option(`${index}: ${name}`,String(index+1))));}
+  $('lampFrameA').value='1';$('lampFrameB').value=String(Math.min(10,imageNames.length));updateLampThumbnails();
+}
+function selectionChanged(){lampRequestGeneration++;lastLampResult=null;clearLampMarkers();updateLampThumbnails();$('lampReport').textContent='选择已更新，点击预测目标位置。';}
+async function loadLampCache(file){
+  if(!file)return;
+  try{
+    const cache=validateCache(JSON.parse(await file.text()));
+    if(rawCameraCenters.length&&cache.images.length!==rawCameraCenters.length)throw new Error(`缓存 ${cache.images.length} 张图，但 GLB 有 ${rawCameraCenters.length} 个相机`);
+    lampCache=cache;imageNames=cache.images;initLampControls();selectionChanged();
+    $('cacheReport').textContent=`${file.name} · ${cache.images.length} 张图 · ${Object.keys(cache.pairs).length} 对 · 键为输入顺序（从 0 开始）`;
+    setStatus('预测缓存已加载；命中时不会请求服务器');
+  }catch(error){$('cacheReport').textContent=`缓存加载失败：${error.message}`;setStatus($('cacheReport').textContent);}
+}
+function requestRender(){if(renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;updateCamera();mainEDL.render(scene,camera,$('useEDL').checked);});}
 function updateCamera(){const cp=Math.cos(pitch);camera.position.set(target.x+distance*Math.sin(yaw)*cp,target.y+distance*Math.sin(pitch),target.z+distance*Math.cos(yaw)*cp);camera.lookAt(target);}
 function resize(){const w=Math.max(viewer.clientWidth,320),h=Math.max(viewer.clientHeight,320);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();requestRender();}
 function fitView(){target.set(0,1,0);distance=8;yaw=.65;pitch=.38;requestRender();}
@@ -144,11 +177,11 @@ function extractCameraCenters(root){
   return centers;
 }
 
-function pointCloudBounds(obj){obj.updateMatrixWorld(true);const box=new THREE.Box3(),tmp=new THREE.Box3();let found=false;obj.traverse(o=>{if(!o.isPoints)return;if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();if(o.geometry.boundingBox){tmp.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);box.union(tmp);found=true;}});return found?box:new THREE.Box3().setFromObject(obj);}
+function pointCloudBounds(obj){obj.updateMatrixWorld(true);const box=new THREE.Box3(),tmp=new THREE.Box3();let found=false;obj.traverse(o=>{if(!o.isPoints&&!(o.isMesh&&o.geometry.getAttribute('position')?.count>100))return;if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();if(o.geometry.boundingBox){tmp.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);box.union(tmp);found=true;}});return found?box:new THREE.Box3().setFromObject(obj);}
 function normalizeContent(obj,boundsObject=obj){const box=pointCloudBounds(boundsObject),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3()),factor=4/(Math.max(size.x,size.y,size.z)||1);obj.scale.multiplyScalar(factor);obj.position.addScaledVector(center,-factor);obj.updateMatrixWorld(true);}
 function percentile(values,q){if(!values.length)return 0;const sorted=values.slice().sort((a,b)=>a-b),index=Math.max(0,Math.min(sorted.length-1,Math.floor(q*(sorted.length-1))));return sorted[index];}
 function collectPointSample(sourceRoot,coordinateRoot,maxPoints=16000){
-  sourceRoot.updateMatrixWorld(true);coordinateRoot.updateMatrixWorld(true);const objects=[];let total=0;sourceRoot.traverse(o=>{if(!o.isPoints)return;const position=o.geometry.getAttribute('position');if(position){objects.push([o,position]);total+=position.count;}});if(!total)return[];
+  sourceRoot.updateMatrixWorld(true);coordinateRoot.updateMatrixWorld(true);const objects=[];let total=0;sourceRoot.traverse(o=>{if(!o.isPoints&&!(o.isMesh&&o.geometry.getAttribute('position')?.count>100))return;const position=o.geometry.getAttribute('position');if(position){objects.push([o,position]);total+=position.count;}});if(!total)return[];
   const stride=Math.max(1,Math.floor(total/maxPoints)),toRoot=coordinateRoot.matrixWorld.clone().invert(),points=[];let cursor=0;
   for(const[o,position]of objects){const matrix=toRoot.clone().multiply(o.matrixWorld);for(let i=0;i<position.count;i++){if(cursor++%stride)continue;points.push(new THREE.Vector3().fromBufferAttribute(position,i).applyMatrix4(matrix));if(points.length>=maxPoints)return points;}}
   return points;
@@ -179,18 +212,59 @@ function autoOrientAndGround(showStatus=true){
 }
 function flipDetectedGround(){if(!detectedBasePlane){setStatus('请先检测底面');return;}detectedBasePlane.normal.negate();detectedBasePlane.constant=-detectedBasePlane.constant;applyDetectedOrientation();setStatus('已上下翻转；如方向正确可保存当前对齐');}
 function applyModelTransform(){if(!modelRoot)return;const d=Math.PI/180;modelRoot.position.set(0,0,0);modelRoot.rotation.order='YXZ';modelRoot.rotation.set(number('modelPitch')*d,number('modelYaw')*d,number('modelRoll')*d);modelRoot.scale.setScalar(number('modelScale',1));modelRoot.updateMatrixWorld(true);if(modelPointSample.length){const quaternion=new THREE.Quaternion().setFromEuler(modelRoot.rotation),scale=number('modelScale',1),heights=modelPointSample.map(p=>p.clone().applyQuaternion(quaternion).multiplyScalar(scale).y);modelRoot.position.y=number('modelLift')-percentile(heights,.02);}else{const box=pointCloudBounds(modelRoot);modelRoot.position.y=number('modelLift')-box.min.y;}modelRoot.updateMatrixWorld(true);if(selectedCurveT!==null)renderTrajectoryPreview();requestRender();}
-function applyPointBudget(){if(!modelContent)return;const budget=number('pointBudget',250000);modelContent.traverse(o=>{if(!o.isPoints)return;const count=o.geometry.getAttribute('position')?.count||0;if(!('originalIndex' in o.userData))o.userData.originalIndex=o.geometry.index;if(count>budget){const index=new Uint32Array(budget),step=count/budget;for(let i=0;i<budget;i++)index[i]=Math.floor(i*step);o.geometry.setIndex(new THREE.BufferAttribute(index,1));o.geometry.setDrawRange(0,budget);}else{o.geometry.setIndex(o.userData.originalIndex||null);o.geometry.setDrawRange(0,count);}});requestRender();}
-function applyPointStyle(){if(!modelContent)return;const size=number('pointSize',.012);modelContent.traverse(o=>{if(o.isPoints&&o.material){o.material.size=size;o.material.sizeAttenuation=true;o.material.needsUpdate=true;}});requestRender();}
-function setCameraMeshesVisible(visible){if(!modelContent)return;modelContent.traverse(o=>{if(o.isMesh)o.visible=visible;});requestRender();}
+function applyPointBudget(){
+  if(!modelContent)return;
+  const objects=[];let total=0;
+  modelContent.traverse(o=>{if(o.isPoints){objects.push(o);total+=o.geometry.getAttribute('position').count;}});
+  const budget=Math.min(MAX_SOURCE_POINTS,number('pointBudget',1000000),total);
+  let offset=0,used=0;
+  for(const o of objects){
+    const count=o.geometry.getAttribute('position').count;
+    const countBudget=Math.floor((offset+count)*budget/total)-Math.floor(offset*budget/total);
+    if(!('originalIndex' in o.userData))o.userData.originalIndex=o.geometry.index;
+    const source=o.userData.originalIndex, sourceCount=source?source.count:count;
+    const chosen=Math.min(countBudget,sourceCount);
+    if(chosen<sourceCount){
+      const indices=new Uint32Array(chosen);
+      for(let i=0;i<chosen;i++){const index=Math.floor(i*sourceCount/chosen);indices[i]=source?source.getX(index):index;}
+      o.geometry.setIndex(new THREE.BufferAttribute(indices,1));
+    }else o.geometry.setIndex(source);
+    o.geometry.setDrawRange(0,chosen);offset+=count;used+=chosen;
+  }
+  $('pointBudget').title=`实际显示 ${used.toLocaleString()} / ${total.toLocaleString()} 点`;
+  renderTrajectoryPreview();requestRender();
+}
+function initializePointSize(){
+  const diagonal=pointCloudBounds(modelContent).getSize(new THREE.Vector3()).length();
+  const size=Math.max(diagonal*.0018,.0001);
+  for(const id of ['pointSize','pointSizeNumber']){const control=$(id);control.min=String(size/10);control.max=String(size*10);control.step=String(size/100);control.value=String(size);}
+}
+function applyPointStyle(){
+  if(!modelContent)return;modelRoot.updateMatrixWorld(true);
+  modelContent.traverse(o=>{if(o.isPoints&&o.material){
+    if(!o.material.userData.roundSplat)configureSplat(o.material);
+    o.material.userData.roundSplat.value=$('roundSplats').checked;
+    o.material.size=number('pointSize')/o.getWorldScale(new THREE.Vector3()).x;
+    o.material.sizeAttenuation=true;
+  }});renderTrajectoryPreview();requestRender();
+}
+function setCameraMeshesVisible(visible){cameraMeshes.forEach(o=>o.visible=visible);renderTrajectoryPreview();requestRender();}
+function applyLayers(){
+  modelContent?.traverse(o=>{if(o.isPoints)o.visible=$('showPoints').checked;
+    if(o.isMesh&&!cameraMeshes.includes(o))o.visible=$('showMesh').checked;});
+  renderTrajectoryPreview();requestRender();
+}
+function refreshRendering(){scene.background.set($('background').value);renderTrajectoryPreview();requestRender();}
 function disposeObject(root){root?.traverse(o=>{o.geometry?.dispose?.();const materials=Array.isArray(o.material)?o.material:[o.material];materials.filter(Boolean).forEach(m=>{m.map?.dispose?.();m.dispose?.();});});}
 function loadGlb(file){
-  if(!file)return;currentModelName=file.name;setStatus('正在读取模型、提取 VGGT 相机并拟合轨迹…');
+  if(!file)return;lampRequestGeneration++;lastLampResult=null;currentModelName=file.name;setStatus('正在读取模型、提取 VGGT 相机并拟合轨迹…');
   const reader=new FileReader();reader.onerror=()=>setStatus(`读取失败：${reader.error?.message||'未知错误'}`);reader.onload=()=>new GLTFLoader().parse(reader.result,'',g=>{
-    closeTrajectoryPreview();if(modelRoot){scene.remove(modelRoot);disposeObject(modelRoot);}basePlaneMesh=null;selectionMarker=null;detectedBasePlane=null;modelPointSample=[];cameraCentersInModel=[];modelContent=g.scene;rawCameraCenters=extractCameraCenters(modelContent);
+    closeTrajectoryPreview();if(selectionMarker){scene.remove(selectionMarker);disposeObject(selectionMarker);}if(modelRoot){scene.remove(modelRoot);disposeObject(modelRoot);}basePlaneMesh=null;selectionMarker=null;detectedBasePlane=null;modelPointSample=[];cameraCentersInModel=[];modelContent=g.scene;rawCameraCenters=extractCameraCenters(modelContent);
     autoAlignGroup=new THREE.Group();curveGroup=new THREE.Group();autoAlignGroup.add(modelContent,curveGroup);modelRoot=new THREE.Group();modelRoot.add(autoAlignGroup);scene.add(modelRoot);
-    rebuildCurve();normalizeContent(autoAlignGroup,modelContent);modelRoot.updateMatrixWorld(true);modelPointSample=collectPointSample(modelContent,modelRoot,16000);cameraCentersInModel=rawCameraCenters.map(p=>p.clone().applyMatrix4(autoAlignGroup.matrix));applyPointBudget();applyPointStyle();setCameraMeshesVisible($('showCameras').checked);setValues(RECOMMENDED);const grounded=autoOrientAndGround(false),restored=restoreAlignment(false);
+    rebuildCurve();normalizeContent(autoAlignGroup,modelContent);modelRoot.updateMatrixWorld(true);modelPointSample=collectPointSample(modelContent,modelRoot,16000);cameraCentersInModel=rawCameraCenters.map(p=>p.clone().applyMatrix4(autoAlignGroup.matrix));initializePointSize();applyPointBudget();applyPointStyle();applyLayers();setCameraMeshesVisible($('showCameras').checked);setValues(RECOMMENDED);const grounded=autoOrientAndGround(false),restored=restoreAlignment(false);
     fitView();let count=0;modelContent.traverse(o=>{if(o.isPoints)count+=o.geometry.getAttribute('position')?.count||0;});
     $('summary').textContent=`${file.name} · ${rawCameraCenters.length} 个视觉相机点`;$('trajectoryReport').innerHTML=`<strong>已生成视觉估计轨迹</strong><br>${rawCameraCenters.length} 个相机光心 · 向心 Catmull–Rom 插值 · 曲线穿过全部光心`;
+    if(lampCache&&lampCache.images.length!==rawCameraCenters.length)$('cacheReport').textContent=`缓存 ${lampCache.images.length} 张图与 GLB ${rawCameraCenters.length} 个相机不一致，请重新加载匹配缓存`;
     setStatus(`已加载 ${file.name} · 原始点云 ${count.toLocaleString()} 点 · ${grounded?'已自动扶正贴地':'请手动调整姿态'}${restored?' · 已恢复保存姿态':''}`);
   },e=>setStatus(`GLB 解析失败：${e.message||e}`));reader.readAsArrayBuffer(file);
 }
@@ -216,21 +290,52 @@ function lampStepToCurveIndex(step,count){
   return(count-1)+(step-lampFrameStep(count))/5;
 }
 function showLampResult(result){
-  clearLampMarkers();if(!curveGroup||rawCameraCenters.length<2)throw new Error('请先加载包含相机的 GLB 模型');
-  const frameA=Number(result.frame_a),frameB=Number(result.frame_b),indexA=frameA-1,indexB=frameB-1,continuous=result.continuous,map=result.map_hard;
-  if(indexA<0||indexA>=rawCameraCenters.length||indexB<0||indexB>=rawCameraCenters.length)throw new Error(`GLB 只有 ${rawCameraCenters.length} 个相机，无法显示所选帧`);
-  // LaMP 数据的距离标注为 -0.5 m/step，因此直接由连续距离恢复连续轨迹步差。
-  // 这里刻意不使用 MAP-hard 的离散帧结果，也不做四舍五入或吸附。
-  const continuousStepDifference=-2*Number(continuous.selected_range_m),predictedStep=lampFrameStep(frameA)+continuousStepDifference,predictedCurveIndex=lampStepToCurveIndex(predictedStep,rawCameraCenters.length),predictedFrameCoordinate=predictedCurveIndex+1,clampedCurveIndex=Math.max(0,Math.min(rawCameraCenters.length-1,predictedCurveIndex)),pointA=rawCameraCenters[indexA],pointB=rawCameraCenters[indexB],pointPred=fittedSpline.getPoint(clampedCurveIndex/(rawCameraCenters.length-1));
-  lampMarkerGroup=new THREE.Group();lampMarkerGroup.add(lampMarker(pointA,0x36a7ff,15,false,11),lampMarker(pointB,0x4ee081,14,false,12),lampMarker(pointPred,0xff9f32,16,false,13));
-  const errorLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints([pointPred,pointB]),new THREE.LineDashedMaterial({color:0xffd166,dashSize:.06,gapSize:.035,depthTest:false}));errorLine.computeLineDistances();lampMarkerGroup.add(errorLine);curveGroup.add(lampMarkerGroup);
-  const targetStep=lampFrameStep(frameB),stepError=predictedStep-targetStep,frameError=predictedFrameCoordinate-frameB,outside=predictedCurveIndex<0||predictedCurveIndex>rawCameraCenters.length-1,mapFrame=Number(map.predicted_target_frame);
-  $('lampReport').className=`report${outside?' warn':''}`;$('lampReport').innerHTML=`<strong>连续预测位置：轨迹帧坐标 ${predictedFrameCoordinate.toFixed(2)}（未吸附）</strong>${outside?'（超出当前GLB范围，画面标记仅夹到端点）':''}<br>连续输出 ${Number(continuous.heading_deg).toFixed(2)}° / ${Number(continuous.selected_range_m).toFixed(2)} m · 连续步差 ${continuousStepDifference.toFixed(2)}<br>与所选 image-${String(frameB).padStart(2,'0')} 相差 ${Math.abs(stepError).toFixed(2)} 轨迹步（约 ${Math.abs(frameError).toFixed(2)} 帧）<br>MAP-hard 仅供参考：image-${String(mapFrame).padStart(2,'0')}，不参与橙色点绘制`;
+  clearLampMarkers();
+  if(!curveGroup||rawCameraCenters.length<2)throw new Error('请先加载包含相机的 GLB 模型');
+  const frameA=Number(result.frame_a),frameB=Number(result.frame_b),indexA=frameA-1,indexB=frameB-1,c=result.continuous;
+  if(indexA<0||indexB<0||indexA>=rawCameraCenters.length||indexB>=rawCameraCenters.length)throw new Error('所选帧超出 GLB 相机范围');
+  let placement,detail;
+  if($('placementMode').value==='angle'){
+    const orbit=fitOrbit(rawCameraCenters,smallestEigenvector3),angle=Number(c.rotation_angle_deg);
+    if(c.rotation_angle_deg===undefined)throw new Error('服务缺少 rotation_angle_deg，请更新远端脚本或加载预测缓存');
+    placement=pointAtAngle(fittedSpline,rawCameraCenters,indexA,angle,orbit);
+    const targetAngle=relativeBearing(rawCameraCenters[indexB],rawCameraCenters[indexA],orbit);
+    const placedAngle=relativeBearing(placement.point,rawCameraCenters[indexA],orbit);
+    detail=`rotation ${angle.toFixed(3)}° · 所选目标方位角 ${targetAngle.toFixed(3)}° · 角差（预测−目标） ${(angle-targetAngle).toFixed(3)}°\n实际放置角 ${placedAngle.toFixed(3)}°；沿输入顺序首个交点（测地角存在前后半圈歧义）`;
+  }else{
+    const step=lampFrameStep(frameA)-2*Number(c.selected_range_m),index=lampStepToCurveIndex(step,rawCameraCenters.length);
+    if(!Number.isFinite(index))throw new Error('无效 range 输出');
+    const t=Math.max(0,Math.min(rawCameraCenters.length-1,index))/(rawCameraCenters.length-1);
+    placement={t,point:fittedSpline.getPoint(t),outside:index<0||index>rawCameraCenters.length-1};
+    detail=`range ${Number(c.selected_range_m).toFixed(3)} m · 相差 ${(index-indexB).toFixed(3)} 帧\n按旧数据 -0.5 m/step 换算；range 输出未在真实图上验证`;
+  }
+  lampMarkerGroup=new THREE.Group();
+  lampMarkerGroup.add(lampMarker(rawCameraCenters[indexA],0x36a7ff,15,false,11),lampMarker(rawCameraCenters[indexB],0x4ee081,14,false,12),lampMarker(placement.point,0xff9f32,16,false,13));
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([placement.point,rawCameraCenters[indexB]]),new THREE.LineDashedMaterial({color:0xffd166,dashSize:.06,gapSize:.035,depthTest:false}));
+  line.computeLineDistances();lampMarkerGroup.add(line);curveGroup.add(lampMarkerGroup);
+  $('lampReport').className=`report${placement.outside?' warn':''}`;$('lampReport').style.whiteSpace='pre-line';
+  $('lampReport').textContent=`来源：${result.source} · ${$('placementMode').value} · 连续输入序号 ${(placement.t*(rawCameraCenters.length-1)).toFixed(3)}\n${detail}${placement.outside?'\n当前轨迹前进范围无匹配位置，显示最接近的可达点。':''}\nMAP-hard 仅供参考，不参与放置。`;
   requestRender();
 }
 async function runLampInference(){
-  if(rawCameraCenters.length<2){setStatus('请先加载 GLB 模型');return;}const button=$('runLamp'),frameA=number('lampFrameA',1),frameB=number('lampFrameB',10);button.disabled=true;button.textContent='模型推理中…';$('lampReport').className='report';$('lampReport').textContent='正在调用远程 RTX 4060 推理服务…';
-  try{const response=await fetch('/api/lamp-infer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame_a:frameA,frame_b:frameB})}),result=await response.json();if(!response.ok)throw new Error(result.error||`HTTP ${response.status}`);showLampResult(result);const continuousFrame=lampStepToCurveIndex(lampFrameStep(frameA)-2*Number(result.continuous.selected_range_m),rawCameraCenters.length)+1;setStatus(`LaMP 连续预测：轨迹帧坐标 ${continuousFrame.toFixed(2)}（未吸附）`);}catch(error){$('lampReport').className='report warn';$('lampReport').textContent=`推理失败：${error.message||error}`;setStatus($('lampReport').textContent);}finally{button.disabled=false;button.textContent='预测目标位置';}
+  if(rawCameraCenters.length<2){setStatus('请先加载 GLB 模型');return;}
+  const frameA=number('lampFrameA'),frameB=number('lampFrameB');
+  if(frameA===frameB){setStatus('请选择不同的两张图片');return;}
+  if(lampCache&&lampCache.images.length!==rawCameraCenters.length){setStatus(`缓存 ${lampCache.images.length} 张图与 GLB ${rawCameraCenters.length} 个相机不一致`);return;}
+  const generation=++lampRequestGeneration,button=$('runLamp');button.disabled=true;button.textContent='预测中…';
+  try{
+    const hit=lampCache?.pairs[`${frameA-1}->${frameB-1}`];let result;
+    if(hit){
+      result={frame_a:frameA,frame_b:frameB,source:'cache',continuous:{...hit,selected_range_m:hit.range_m},map_hard:hit.decoded};
+    }else{
+      $('lampReport').textContent='缓存未命中，正在调用 LaMP 服务…';
+      const response=await fetch('/api/lamp-infer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame_a:frameA,frame_b:frameB,image_a:imageNames[frameA-1],image_b:imageNames[frameB-1]})});
+      result=await response.json();if(!response.ok)throw new Error(result.error||`HTTP ${response.status}`);result.source='server';
+    }
+    if(generation!==lampRequestGeneration)return;
+    showLampResult(result);lastLampResult=result;setStatus(`LaMP 结果来源：${result.source}`);
+  }catch(error){if(generation===lampRequestGeneration){$('lampReport').className='report warn';$('lampReport').textContent=`预测失败：${error.message}`;setStatus($('lampReport').textContent);}}
+  finally{button.disabled=false;button.textContent='预测目标位置';}
 }
 
 function interpolatedCameraFrame(t){
@@ -243,8 +348,8 @@ function renderTrajectoryPreview(){
   if(selectedCurveT===null||!fittedSpline||!curveGroup||!modelContent)return;scene.updateMatrixWorld(true);const localPoint=fittedSpline.getPoint(selectedCurveT),worldPoint=localPoint.clone().applyMatrix4(curveGroup.matrixWorld),mode=$('previewMode').value,frame=interpolatedCameraFrame(selectedCurveT);let forward,up;
   if(mode==='camera'&&frame){forward=frame.forward.clone().transformDirection(curveGroup.matrixWorld);up=frame.up.clone().transformDirection(curveGroup.matrixWorld);}else{forward=pointCloudBounds(modelContent).getCenter(new THREE.Vector3()).sub(worldPoint).normalize();up=new THREE.Vector3(0,1,0);}
   if(!Number.isFinite(forward.x)||forward.lengthSq()<1e-8)forward=new THREE.Vector3(0,-.2,-1).normalize();if(Math.abs(forward.dot(up))>.98)up=new THREE.Vector3(0,1,0).cross(forward).cross(forward).normalize();
-  previewCamera.position.copy(worldPoint);previewCamera.up.copy(up);previewCamera.lookAt(worldPoint.clone().add(forward));previewCamera.updateMatrixWorld(true);updateSelectionMarker(worldPoint);$('cameraPreview').style.display='block';const host=$('previewCanvas'),w=Math.max(280,host.clientWidth||440),h=Math.max(190,host.clientHeight||300);previewRenderer.setSize(w,h,false);previewCamera.aspect=w/h;previewCamera.updateProjectionMatrix();
-  const hidden=[grid,axes,curveGroup,basePlaneMesh,selectionMarker,...cameraMeshes].filter(Boolean),states=hidden.map(o=>o.visible);hidden.forEach(o=>o.visible=false);previewRenderer.render(scene,previewCamera);hidden.forEach((o,index)=>o.visible=states[index]);
+  previewCamera.position.copy(worldPoint);previewCamera.up.copy(up);previewCamera.lookAt(worldPoint.clone().add(forward));previewCamera.updateMatrixWorld(true);updateSelectionMarker(worldPoint);$('cameraPreview').style.display='block';const host=$('previewCanvas'),[w,h]=$('previewResolution').value.split('x').map(Number);host.style.height='auto';host.style.aspectRatio=`${w} / ${h}`;previewRenderer.setSize(w,h,false);previewCamera.aspect=w/h;previewCamera.updateProjectionMatrix();
+  const hidden=[grid,axes,curveGroup,basePlaneMesh,selectionMarker,...cameraMeshes].filter(Boolean),states=hidden.map(o=>o.visible);hidden.forEach(o=>o.visible=false);previewEDL.render(scene,previewCamera,$('useEDL').checked);hidden.forEach((o,index)=>o.visible=states[index]);
   const u=selectedCurveT*Math.max(1,rawCameraFrames.length-1),left=Math.floor(u)+1,right=Math.min(rawCameraFrames.length,Math.ceil(u)+1);$('previewMeta').textContent=`轨迹 ${(selectedCurveT*100).toFixed(1)}% · 位于相机 ${left}${right!==left?` 与 ${right} 之间`:''} · ${mode==='camera'?'插值镜头朝向':'朝向建筑中心'}`;requestRender();
 }
 function handleCurvePick(event){
@@ -256,10 +361,17 @@ function downloadTrajectoryPreview(){if(selectedCurveT===null)return;renderTraje
 const alignmentIds=Object.keys(RECOMMENDED),storageKey=()=>currentModelName?`vggt-camera-path-v2:${currentModelName}`:'';
 function saveAlignment(){if(!storageKey()){setStatus('请先加载 GLB，再保存对齐参数');return;}try{localStorage.setItem(storageKey(),JSON.stringify(Object.fromEntries(alignmentIds.map(id=>[id,number(id)]))));setStatus(`已保存 ${currentModelName} 的三维对齐参数`);}catch(e){setStatus(`保存失败：${e.message||e}`);}}
 function restoreAlignment(show=true){if(!storageKey())return false;try{const raw=localStorage.getItem(storageKey());if(!raw){if(show)setStatus('当前模型没有已保存参数');return false;}setValues(JSON.parse(raw));if(show)setStatus(`已恢复 ${currentModelName} 的三维对齐参数`);return true;}catch(e){if(show)setStatus(`恢复失败：${e.message||e}`);return false;}}
-function onControl(id){if(id.startsWith('model'))applyModelTransform();else if(id==='pointSize')applyPointStyle();}
+function onControl(id){if(id.startsWith('model')){applyModelTransform();if(id==='modelScale')applyPointStyle();}else if(id==='pointSize')applyPointStyle();}
 
+$('background').addEventListener('change',refreshRendering);
+$('useEDL').addEventListener('change',refreshRendering);
+$('roundSplats').addEventListener('change',applyPointStyle);
+$('showPoints').addEventListener('change',applyLayers);$('showMesh').addEventListener('change',applyLayers);
+$('previewResolution').addEventListener('change',renderTrajectoryPreview);
 $('glbFile').addEventListener('change',e=>loadGlb(e.target.files[0]));
-$('lampFrameA').addEventListener('change',updateLampThumbnails);$('lampFrameB').addEventListener('change',updateLampThumbnails);$('runLamp').addEventListener('click',runLampInference);
+$('lampFrameA').addEventListener('change',selectionChanged);$('lampFrameB').addEventListener('change',selectionChanged);
+$('lampCacheFile').addEventListener('change',e=>loadLampCache(e.target.files[0]));
+$('placementMode').addEventListener('change',()=>{if(lastLampResult){try{showLampResult(lastLampResult);}catch(error){$('lampReport').textContent=error.message;}}});$('runLamp').addEventListener('click',runLampInference);
 $('pointBudget').addEventListener('change',applyPointBudget);$('curveColor').addEventListener('input',applyCurveTransform);
 $('showGrid').addEventListener('change',()=>{grid.visible=$('showGrid').checked;requestRender();});$('showAxes').addEventListener('change',()=>{axes.visible=$('showAxes').checked;requestRender();});$('showCameras').addEventListener('change',()=>setCameraMeshesVisible($('showCameras').checked));$('showCurve').addEventListener('change',applyCurveTransform);$('showBasePlane').addEventListener('change',()=>{if(basePlaneMesh)basePlaneMesh.visible=$('showBasePlane').checked;requestRender();});
 $('autoGround').addEventListener('click',()=>autoOrientAndGround(true));$('flipGround').addEventListener('click',flipDetectedGround);
