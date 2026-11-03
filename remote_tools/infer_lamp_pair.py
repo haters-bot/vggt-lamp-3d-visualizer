@@ -45,14 +45,9 @@ def load_backbone(weight: Path, device: torch.device, dtype: torch.dtype):
     from vggt.models.vggt import VGGT
 
     model = VGGT()
-    try:
-        state = torch.load(weight, map_location="cpu", weights_only=True, mmap=True)
-    except TypeError:
-        state = torch.load(weight, map_location="cpu")
-    try:
-        model.load_state_dict(state, strict=True, assign=True)
-    except TypeError:
-        model.load_state_dict(state, strict=True)
+    assert weight.is_file(), f"missing VGGT weight: {weight}"
+    state = torch.load(weight, map_location="cpu", weights_only=True, mmap=True)
+    model.load_state_dict(state, strict=True, assign=True)
     model.camera_head = None
     model.point_head = None
     model.depth_head = None
@@ -76,7 +71,10 @@ def frame_number(path: Path) -> int | None:
 
 def main() -> None:
     args = parse_args()
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    assert all(p.is_file() for p in (args.image_a, args.image_b, args.vggt_weight)), f"missing input: {args}"
+    assert args.bundle.is_dir(), f"missing bundle: {args.bundle}"
+    device = torch.device(args.device)
+    assert device.type != "cuda" or torch.cuda.is_available(), "requested CUDA is unavailable"
     dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
     bundle = args.bundle.resolve()
 
@@ -137,6 +135,8 @@ def main() -> None:
         "image_b": str(args.image_b.resolve()),
         "continuous": {
             "heading_deg": heading,
+            "yaw_deg": heading,
+            "rotation_angle_deg": float(np.rad2deg(np.arccos(np.clip((np.trace(rotation[0].double().cpu().numpy()) - 1) / 2, -1, 1)))),
             "range_close_m": range_close,
             "range_far_m": range_far,
             "selected_range_m": selected_range,
@@ -152,7 +152,7 @@ def main() -> None:
             torch.cuda.max_memory_allocated(device) / 1024**3 if device.type == "cuda" else None
         ),
     }
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
 
 
 if __name__ == "__main__":
