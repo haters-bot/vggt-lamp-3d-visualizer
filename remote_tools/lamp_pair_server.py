@@ -169,6 +169,11 @@ def main() -> None:
                     raise ValueError("invalid request size")
                 request = json.loads(self.rfile.read(size).decode("utf-8"))
                 frame_a, frame_b = int(request["frame_a"]), int(request["frame_b"])
+                if "image_set" in request and request["image_set"] != runtime.image_dir.name:
+                    raise ValueError(
+                        f"image set mismatch: client={request['image_set']}, "
+                        f"server={runtime.image_dir.name}; restart the service with the matching --image-dir"
+                    )
                 for key, frame in (("image_a", frame_a), ("image_b", frame_b)):
                     if key in request and request[key] != runtime.image_path(frame).name:
                         raise ValueError(f"image order mismatch: {key}={request[key]}, server={runtime.image_path(frame).name}")

@@ -27,7 +27,35 @@ HTML_TEMPLATE = PROJECT_DIR / "three_editor.html"
 sys.path.insert(0, str(PROJECT_DIR.parent / "remote_tools"))
 from image_order import ordered_images
 
-UAV_IMAGE_DIR = PROJECT_DIR.parent / "reconstruction_inputs" / "building_1565_images_01_50"
+IMAGE_LIBRARY_DIR = PROJECT_DIR.parent / "reconstruction_inputs"
+DEFAULT_IMAGE_SET = "building_1565_images_01_50"
+UAV_IMAGE_DIR = IMAGE_LIBRARY_DIR / DEFAULT_IMAGE_SET
+
+# The source image names are not stored in VGGT's GLB.  These content hashes
+# provide a stable association for the fixed model library, even if a GLB is
+# renamed after downloading it.
+MODEL_IMAGE_PROFILES = {
+    "a5390091ed2e71c5b77debe1e614078ff50b23dd0901c2c0e765c604f62fa3b6": {
+        "image_set": DEFAULT_IMAGE_SET,
+        "count": 8,
+        "label": "building_1565（8 图模型）",
+    },
+    "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977": {
+        "image_set": DEFAULT_IMAGE_SET,
+        "count": 50,
+        "label": "building_1565",
+    },
+    "58edb309a106a139690594b562d346d169209c4c920ad1730b45d40f7ad30269": {
+        "image_set": "building_0839_images_01_50",
+        "count": 50,
+        "label": "building_0839",
+    },
+    "463f6de2988c384399a2c379f6d6bd8addb4fa510627b1268eae80ebea3c2614": {
+        "image_set": "building_1374_images_01_50",
+        "count": 50,
+        "label": "building_1374",
+    },
+}
 
 
 @dataclass
@@ -183,10 +211,22 @@ def export_preview(samples: list[LookAtSample], destination: Path) -> None:
     plt.close(figure)
 
 
-def build_html(samples: list[LookAtSample], summary: dict, images: list[Path]) -> str:
+def build_html(
+    samples: list[LookAtSample],
+    summary: dict,
+    image_sets: dict[str, list[Path]],
+    default_image_set: str,
+) -> str:
     if not HTML_TEMPLATE.is_file():
         raise FileNotFoundError(f"3D editor template not found: {HTML_TEMPLATE}")
-    payload = {"points": [asdict(sample) for sample in samples], "summary": summary, "images": [p.name for p in images]}
+    payload = {
+        "points": [asdict(sample) for sample in samples],
+        "summary": summary,
+        "images": [p.name for p in image_sets[default_image_set]],
+        "image_sets": {name: [p.name for p in images] for name, images in image_sets.items()},
+        "default_image_set": default_image_set,
+        "model_image_profiles": MODEL_IMAGE_PROFILES,
+    }
     template = HTML_TEMPLATE.read_text(encoding="utf-8")
     return template.replace(
         "__INITIAL_DATA__",
@@ -194,9 +234,17 @@ def build_html(samples: list[LookAtSample], summary: dict, images: list[Path]) -
     )
 
 
-def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str, images: list[Path]) -> None:
+def serve(
+    html: str,
+    host: str,
+    port: int,
+    open_browser: bool,
+    lamp_api_url: str,
+    image_sets: dict[str, list[Path]],
+    default_image_set: str,
+) -> None:
     page = html.encode("utf-8")
-    image_paths = {p.name: p for p in images}
+    image_paths = {set_name: {p.name: p for p in images} for set_name, images in image_sets.items()}
     assets = {
         "/orbit_math.js": PROJECT_DIR / "orbit_math.js",
         "/rendering.js": PROJECT_DIR / "rendering.js",
@@ -209,11 +257,15 @@ def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str
         def do_GET(self) -> None:  # noqa: N802
             request_path = self.path.split("?", 1)[0]
             if request_path.startswith("/uav-images/"):
-                name = unquote(request_path[len("/uav-images/"):])
-                if name not in image_paths:
+                relative = unquote(request_path[len("/uav-images/"):])
+                if "/" in relative:
+                    set_name, name = relative.split("/", 1)
+                else:  # backward-compatible URL for exported/older pages
+                    set_name, name = default_image_set, relative
+                if set_name not in image_paths or name not in image_paths[set_name]:
                     self.send_error(404, "Image not in configured directory")
                     return
-                path = image_paths[name]
+                path = image_paths[set_name][name]
                 if not path.is_file():
                     self.send_error(404)
                     return
@@ -304,7 +356,11 @@ def serve(html: str, host: str, port: int, open_browser: bool, lamp_api_url: str
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kml", type=Path, default=DEFAULT_KML, help="Input KML containing LookAt samples")
-    parser.add_argument("--image-dir", type=Path, default=UAV_IMAGE_DIR, help="Images in numeric filename/input order")
+    parser.add_argument(
+        "--image-dir",
+        type=Path,
+        help="Use one custom image directory instead of the bundled fixed-model image library",
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=7872)
     parser.add_argument(
@@ -321,12 +377,22 @@ def main() -> None:
 
     if not args.kml.is_file():
         parser.error(f"KML file not found: {args.kml}")
-    images = ordered_images(args.image_dir)
+    if args.image_dir:
+        custom_dir = args.image_dir.resolve()
+        default_image_set = custom_dir.name
+        image_sets = {default_image_set: ordered_images(custom_dir)}
+    else:
+        required_sets = sorted({profile["image_set"] for profile in MODEL_IMAGE_PROFILES.values()})
+        image_sets = {
+            name: ordered_images(IMAGE_LIBRARY_DIR / name)
+            for name in required_sets
+        }
+        default_image_set = DEFAULT_IMAGE_SET
     assert HTML_TEMPLATE.is_file(), f"missing template: {HTML_TEMPLATE}"
     for destination in (args.export_csv, args.export_preview, args.export_html):
         assert destination is None or not destination.exists(), f"refusing to overwrite: {destination}"
     samples, summary = parse_kml_lookat(args.kml)
-    html = build_html(samples, summary, images)
+    html = build_html(samples, summary, image_sets, default_image_set)
     if args.export_csv:
         write_csv(samples, args.export_csv)
         print(f"CSV: {args.export_csv}")
@@ -342,7 +408,15 @@ def main() -> None:
         f"range {summary['range_min_m']:.1f} to {summary['range_max_m']:.1f} m"
     )
     if not args.no_serve:
-        serve(html, args.host, args.port, not args.no_browser, args.lamp_api_url, images)
+        serve(
+            html,
+            args.host,
+            args.port,
+            not args.no_browser,
+            args.lamp_api_url,
+            image_sets,
+            default_image_set,
+        )
 
 
 if __name__ == "__main__":
