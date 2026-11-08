@@ -40,9 +40,9 @@
   <div id="trajectoryReport" class="report">加载 GLB 后生成相机轨迹。</div>
 
   <h3>LaMP 两图相对定位</h3>
-  <div class="hint">选择起始图和目标图；优先读取本地预测缓存，未命中时调用 LaMP 服务。图片顺序须与 GLB 相机一致。</div>
-  <label>加载预测缓存 JSON<input id="lampCacheFile" type="file" accept=".json,application/json"></label>
-  <div id="cacheReport" class="hint">未加载缓存；选择已登记的 GLB 后会自动切换到对应实拍图片。</div>
+  <div class="hint">选择 GLB 后自动切换对应实拍图和预测缓存；已登记模型不会回退到其他建筑的远程服务。</div>
+  <label>手动覆盖预测缓存 JSON<input id="lampCacheFile" type="file" accept=".json,application/json"></label>
+  <div id="cacheReport" class="hint">等待模型；识别后将自动加载对应图片和缓存。</div>
   <label>预测点放置模式<select id="placementMode"><option value="angle" selected>angle on fitted orbit</option><option value="range">range</option></select></label>
   <div class="hint">angle 使用旋转测地角 [0°,180°]，沿输入顺序选首个交点，无法区分整圈前后半圈。range 输出未在真实图上验证。</div>
   <div class="pair-grid">
@@ -51,7 +51,7 @@
   </div>
   <button id="runLamp" class="primary" style="width:100%;margin-top:8px">预测目标位置</button>
   <div class="lamp-legend"><span style="--c:var(--source)">起始视锥</span><span style="--c:var(--prediction)">预测视锥</span><span style="--c:var(--target)">实际终止视锥</span></div>
-  <div id="lampReport" class="report">加载预测缓存即可离线使用；未命中时调用服务。</div>
+  <div id="lampReport" class="report">选择模型后将自动加载对应预测缓存。</div>
 
   <h3>自动扶正与贴地</h3>
   <button id="autoGround" class="primary" style="width:100%">重新自动贴地</button>
@@ -163,6 +163,7 @@ const modelImageProfiles=window.INITIAL_DATA.model_image_profiles||{};
 const defaultImageSet=window.INITIAL_DATA.default_image_set||Object.keys(imageSets)[0]||'default';
 let activeImageSet=defaultImageSet;
 let activeImageProfile='默认图片';
+let activeModelProfile=null;
 let imageNames=(imageSets[activeImageSet]||window.INITIAL_DATA.images||Array.from({length:50},(_,i)=>`image-${String(i+1).padStart(2,'0')}.jpeg`)).slice();
 let timelineStartIndex=null,timelineEndIndex=null,timelinePredictionT=null,timelineAwaitingEnd=false;
 function imageUrl(frame){return `/uav-images/${encodeURIComponent(activeImageSet)}/${encodeURIComponent(imageNames[frame-1])}`;}
@@ -187,9 +188,23 @@ function initLampControls(){
   for(const id of ['lampFrameA','lampFrameB']){const select=$(id);select.replaceChildren();imageNames.forEach((name,index)=>select.add(new Option(`${index}: ${name}`,String(index+1))));}
   $('lampFrameA').value='1';$('lampFrameB').value=String(Math.min(10,imageNames.length));updateLampThumbnails();resetTimelinePicker();
 }
-function selectImagesForModel(hash){
-  const profile=modelImageProfiles[hash],fallback=imageSets[defaultImageSet]||window.INITIAL_DATA.images||[];
+async function loadAutomaticCache(profile){
   lampCache=null;
+  if(!profile.cache)return{loaded:false,message:'未配置自动缓存'};
+  $('cacheReport').textContent=`已匹配 ${profile.label} · 正在加载预测缓存…`;
+  try{
+    const response=await fetch(`/lamp-caches/${encodeURIComponent(profile.cache)}`,{cache:'no-store'});
+    if(response.status===404)return{loaded:false,message:`对应缓存尚未安装：${profile.cache}`};
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const cache=validateCache(await response.json());
+    if(cache.images.length!==imageNames.length||cache.images.some((name,index)=>name!==imageNames[index]))throw new Error('缓存图片顺序与当前模型图片集不一致');
+    lampCache=cache;
+    return{loaded:true,message:`已自动加载 ${Object.keys(cache.pairs).length} 对预测缓存`};
+  }catch(error){return{loaded:false,message:`自动缓存无效：${error.message}`};}
+}
+async function selectImagesForModel(hash){
+  const profile=modelImageProfiles[hash],fallback=imageSets[defaultImageSet]||window.INITIAL_DATA.images||[];
+  lampCache=null;activeModelProfile=null;
   if(!profile){
     activeImageSet=defaultImageSet;activeImageProfile='未登记模型（默认图片）';imageNames=fallback.slice();initLampControls();
     $('cacheReport').textContent=`未识别此 GLB；当前使用默认图片 ${defaultImageSet}，请勿据此判断图像对应关系。`;
@@ -201,9 +216,10 @@ function selectImagesForModel(hash){
     $('cacheReport').textContent=`已识别 ${profile.label}，但本地缺少图片集 ${profile.image_set}。`;
     return{matched:false,message:`已识别 ${profile.label}，但对应图片集缺失`};
   }
-  activeImageSet=profile.image_set;activeImageProfile=profile.label;imageNames=available.slice(0,profile.count);initLampControls();
-  $('cacheReport').textContent=`已自动匹配 ${profile.label} · ${imageNames.length} 张实拍图片 · GLB SHA-256 ${hash.slice(0,12)}…`;
-  return{matched:true,message:`已匹配 ${profile.label} 的 ${imageNames.length} 张实拍图片`};
+  activeModelProfile=profile;activeImageSet=profile.image_set;activeImageProfile=profile.label;imageNames=available.slice(0,profile.count);initLampControls();
+  const cacheResult=await loadAutomaticCache(profile);
+  $('cacheReport').textContent=`${profile.label} · ${imageNames.length} 张实拍图片 · ${cacheResult.message} · GLB ${hash.slice(0,12)}…`;
+  return{matched:true,message:`已匹配 ${profile.label} 的 ${imageNames.length} 张实拍图片；${cacheResult.message}`};
 }
 async function sha256Hex(buffer){
   if(!crypto?.subtle)throw new Error('当前浏览器不支持 Web Crypto，无法识别模型指纹');
@@ -314,7 +330,7 @@ function loadGlb(file){
   if(!file)return;lampRequestGeneration++;lastLampResult=null;resetTimelinePicker();currentModelName=file.name;setStatus('正在读取模型、提取 VGGT 相机并拟合轨迹…');
   const reader=new FileReader();reader.onerror=()=>setStatus(`读取失败：${reader.error?.message||'未知错误'}`);reader.onload=async()=>{
     let imageMatch={matched:false,message:'模型指纹识别失败'};
-    try{imageMatch=selectImagesForModel(await sha256Hex(reader.result));}catch(error){$('cacheReport').textContent=error.message;}
+    try{imageMatch=await selectImagesForModel(await sha256Hex(reader.result));}catch(error){$('cacheReport').textContent=error.message;}
     new GLTFLoader().parse(reader.result,'',g=>{
     closeTrajectoryPreview();if(selectionMarker){scene.remove(selectionMarker);disposeObject(selectionMarker);}if(modelRoot){scene.remove(modelRoot);disposeObject(modelRoot);}basePlaneMesh=null;selectionMarker=null;detectedBasePlane=null;modelPointSample=[];cameraCentersInModel=[];modelContent=g.scene;rawCameraCenters=extractCameraCenters(modelContent);
     autoAlignGroup=new THREE.Group();curveGroup=new THREE.Group();autoAlignGroup.add(modelContent,curveGroup);modelRoot=new THREE.Group();modelRoot.add(autoAlignGroup);scene.add(modelRoot);
@@ -415,6 +431,8 @@ async function runLampInference(){
     const hit=lampCache?.pairs[`${frameA-1}->${frameB-1}`];let result;
     if(hit){
       result={frame_a:frameA,frame_b:frameB,source:'cache',continuous:{...hit,selected_range_m:hit.range_m},map_hard:hit.decoded};
+    }else if(activeModelProfile){
+      throw new Error(lampCache?`自动缓存未包含图片对 ${frameA-1}->${frameB-1}`:`${activeModelProfile.label} 的预测缓存尚未安装；请先生成并复制 ${activeModelProfile.cache}`);
     }else{
       $('lampReport').textContent='缓存未命中，正在调用 LaMP 服务…';
       const response=await fetch('/api/lamp-infer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame_a:frameA,frame_b:frameB,image_a:imageNames[frameA-1],image_b:imageNames[frameB-1],image_set:activeImageSet})});

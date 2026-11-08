@@ -28,6 +28,7 @@ sys.path.insert(0, str(PROJECT_DIR.parent / "remote_tools"))
 from image_order import ordered_images
 
 IMAGE_LIBRARY_DIR = PROJECT_DIR.parent / "reconstruction_inputs"
+CACHE_LIBRARY_DIR = PROJECT_DIR.parent / "prediction_caches"
 DEFAULT_IMAGE_SET = "building_1565_images_01_50"
 UAV_IMAGE_DIR = IMAGE_LIBRARY_DIR / DEFAULT_IMAGE_SET
 
@@ -39,21 +40,25 @@ MODEL_IMAGE_PROFILES = {
         "image_set": DEFAULT_IMAGE_SET,
         "count": 8,
         "label": "building_1565（8 图模型）",
+        "cache": "building_1565_images_01_08.lamp_cache.json",
     },
     "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977": {
         "image_set": DEFAULT_IMAGE_SET,
         "count": 50,
         "label": "building_1565",
+        "cache": "building_1565_images_01_50.lamp_cache.json",
     },
     "58edb309a106a139690594b562d346d169209c4c920ad1730b45d40f7ad30269": {
         "image_set": "building_0839_images_01_50",
         "count": 50,
         "label": "building_0839",
+        "cache": "building_0839_images_01_50.lamp_cache.json",
     },
     "463f6de2988c384399a2c379f6d6bd8addb4fa510627b1268eae80ebea3c2614": {
         "image_set": "building_1374_images_01_50",
         "count": 50,
         "label": "building_1374",
+        "cache": "building_1374_images_01_50.lamp_cache.json",
     },
 }
 
@@ -245,6 +250,7 @@ def serve(
 ) -> None:
     page = html.encode("utf-8")
     image_paths = {set_name: {p.name: p for p in images} for set_name, images in image_sets.items()}
+    cache_names = {profile["cache"] for profile in MODEL_IMAGE_PROFILES.values()}
     assets = {
         "/orbit_math.js": PROJECT_DIR / "orbit_math.js",
         "/rendering.js": PROJECT_DIR / "rendering.js",
@@ -274,6 +280,23 @@ def serve(
                 self.send_header("Content-Type", mimetypes.guess_type(path.name)[0] or "application/octet-stream")
                 self.send_header("Content-Length", str(len(content)))
                 self.send_header("Cache-Control", "public, max-age=3600")
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            if request_path.startswith("/lamp-caches/"):
+                name = unquote(request_path[len("/lamp-caches/"):])
+                if name not in cache_names or "/" in name or "\\" in name:
+                    self.send_error(404, "Unknown prediction cache")
+                    return
+                path = CACHE_LIBRARY_DIR / name
+                if not path.is_file():
+                    self.send_error(404, "Prediction cache has not been installed")
+                    return
+                content = path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Cache-Control", "no-cache")
                 self.end_headers()
                 self.wfile.write(content)
                 return

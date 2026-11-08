@@ -32,7 +32,9 @@ Three.js 及 GLTFLoader/BufferGeometryUtils 沿用仓库随附 r160（0.160.0，
 
 ## 离线预测缓存
 
-选择“加载预测缓存 JSON”，然后选择起始图、目标图并点击预测。缓存键 `0->27` 表示图片数组中的第 0、27 项，与文件名数字不必相同。缓存命中完全不访问服务；未命中才 POST `/api/lamp-infer`。结果明确显示 `cache` / `server`；切换图片会清除旧标记。预测完成后自动打开预测视角的点云预览。
+选择已登记的 GLB 后，页面按模型内容指纹同时切换对应实拍图，并从 `prediction_caches/` 自动加载该模型的缓存 JSON。缓存键 `0->27` 表示图片数组中的第 0、27 项，与文件名数字不必相同。已登记模型只使用自己的缓存：缓存文件缺失或图片对未命中时明确提示，不会回退到另一建筑的远程服务。手动缓存文件选择器保留为调试覆盖入口。预测完成后自动打开预测视角的点云预览。
+
+缓存文件名与模型映射记录在 `MODEL_IMAGE_PROFILES`，当前期望 `building_1565_images_01_08.lamp_cache.json`、`building_1565_images_01_50.lamp_cache.json`、`building_0839_images_01_50.lamp_cache.json` 和 `building_1374_images_01_50.lamp_cache.json`。缓存生成后复制到 `prediction_caches/`，重启本地应用即可自动使用。
 
 默认 `angle on fitted orbit`：相机光心 PCA 拟合平面，在该平面最小二乘拟合圆心，沿向心 Catmull–Rom 轨迹搜索相对 source 的中心方位夹角等于 `rotation_angle_deg` 的首个连续位置。显示与目标帧方位夹角的有符号差值。
 
@@ -46,7 +48,7 @@ Three.js 及 GLTFLoader/BufferGeometryUtils 沿用仓库随附 r160（0.160.0，
 
 ```bash
 export PYTHONPATH=/path/to/vggt-pairuav:/path/to/vggt-pairuav/3rdparty/vggt
-export CUDA_VISIBLE_DEVICES=1 PYTHONDONTWRITEBYTECODE=1 CUBLAS_WORKSPACE_CONFIG=:4096:8
+export CUDA_VISIBLE_DEVICES=0 PYTHONDONTWRITEBYTECODE=1 CUBLAS_WORKSPACE_CONFIG=:4096:8
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 python remote_tools/precompute_lamp_pairs.py \
   --image-dir /path/to/images --expected-images 50 \
@@ -58,7 +60,7 @@ python remote_tools/precompute_lamp_pairs.py \
 
 缓存包含图像顺序与 SHA256、bundle 路径、VGGT 权重 SHA256、时间、每对 heading/yaw/rotation/range、decoded 与耗时。`yaw_deg` 与原 heading 定义相同：`atan2(R[1,0], R[0,0])`；`rotation_angle_deg=degrees(acos(clip((trace(R)-1)/2,-1,1)))`。`decoded.label_index` 是 decoder 网格的 0-based 索引，不是目标帧。所有 JSON 用 `allow_nan=False` 写出。
 
-VGGT 参数为 FP32，aggregator 在 BF16 autocast 下运行，池化特征经 FP16 再回 FP32，沿用论文特征缓存口径。固定 seed 2026 和确定性算法；同环境的预测字段可复现，`created`、`seconds` 等运行元数据自然随执行变化。默认 GPU 预算 25 GB，PyTorch allocator 限制为 24 GB，为 CUDA 上下文预留 1 GB。
+VGGT 参数为 FP32，aggregator 在 BF16 autocast 下运行，池化特征经 FP16 再回 FP32，沿用论文特征缓存口径。固定 seed 2026 和确定性算法；同环境的预测字段可复现，`created`、`seconds` 等运行元数据自然随执行变化。GPU 预算默认按检测到的显存减去 1 GB 自动设置，也可用 `--max-memory-gb` 指定，因此兼容当前 8 GB RTX 4060。
 
 ```bash
 python remote_tools/lamp_pair_server.py \
@@ -68,4 +70,4 @@ python remote_tools/lamp_pair_server.py \
 
 本地 HTTP 服务默认转发至 `http://127.0.0.1:8765/infer`，也可传 `--lamp-api-url`。远端部署时可用 `ssh -N -L 8765:127.0.0.1:8765 USER@REMOTE_HOST`。服务 API 的 `frame_a/frame_b` 为 1-based 输入序号；前端同时传图片名，服务检查顺序一致，避免回退时预测错误数据集。单对 CLI `remote_tools/infer_lamp_pair.py` 同样返回旋转测地角。
 
-权重、虚拟环境、缓存、GLB 和测试截图不随 Git 仓库提交。Task_37 的真实数据验证、网格与截图位于其上级 Task 目录；没有 push。
+权重、虚拟环境、GLB 和测试截图不随 Git 仓库提交。`prediction_caches/` 已包含固定模型库对应的四份真实离线预测缓存；重新生成时须沿用约定文件名，并通过图片顺序、数量与 SHA-256 校验后再替换。

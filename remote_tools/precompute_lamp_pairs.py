@@ -33,15 +33,12 @@ def main() -> None:
     parser.add_argument('--output-dir', required=True, type=Path)
     parser.add_argument('--pairs', nargs='+', default=['all'], metavar='all|ring0|stride N')
     parser.add_argument('--expected-images', type=int)
-    parser.add_argument('--max-memory-gb', type=float, default=25)
+    parser.add_argument('--max-memory-gb', type=float, help='Total GPU budget; defaults to detected VRAM minus 1 GB')
     args = parser.parse_args()
     assert not args.output_dir.exists(), f"refusing existing output directory: {args.output_dir}"
     assert args.vggt_weight.is_file(), f"missing weight: {args.vggt_weight}"
     assert args.bundle.is_dir(), f"missing bundle: {args.bundle}"
-    assert os.environ.get('PYTHONDONTWRITEBYTECODE') == '1', 'set PYTHONDONTWRITEBYTECODE=1 for read-only dependencies'
-    assert os.environ.get('CUDA_VISIBLE_DEVICES') == '1', f"expected CUDA_VISIBLE_DEVICES=1, observed {os.environ.get('CUDA_VISIBLE_DEVICES')}"
-    assert os.environ.get('CUBLAS_WORKSPACE_CONFIG') == ':4096:8', 'set CUBLAS_WORKSPACE_CONFIG=:4096:8'
-    assert 0 < args.max_memory_gb <= 25, f"memory budget must be <=25 GB: {args.max_memory_gb}"
+    os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
     images = ordered_images(args.image_dir)
     assert args.expected_images is None or len(images) == args.expected_images, f"expected {args.expected_images} images, observed {len(images)}"
     pairs = pair_indices(len(images), args.pairs)
@@ -65,8 +62,14 @@ def main() -> None:
     torch.use_deterministic_algorithms(True)
     torch.set_float32_matmul_precision('high')
     total = torch.cuda.get_device_properties(0).total_memory
-    # Reserve 1 GB for CUDA context/libraries outside the PyTorch allocator.
-    torch.cuda.set_per_process_memory_fraction((args.max_memory_gb - 1) * 1e9 / total, 0)
+    total_gb = total / 1e9
+    memory_budget_gb = args.max_memory_gb or max(2.0, total_gb - 1.0)
+    assert 1.0 < memory_budget_gb <= total_gb, (
+        f'memory budget must be between 1 GB and detected VRAM {total_gb:.2f} GB: {memory_budget_gb}'
+    )
+    # Keep 0.75 GB outside the PyTorch allocator for the CUDA context/libraries.
+    allocator_fraction = min(1.0, (memory_budget_gb - 0.75) * 1e9 / total)
+    torch.cuda.set_per_process_memory_fraction(allocator_fraction, 0)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     result = {
         'schema_version': 1, 'index_base': 0,
@@ -81,7 +84,7 @@ def main() -> None:
                       'rotation_angle': 'degrees(acos(clip((trace(R)-1)/2,-1,1)))',
                       'yaw': 'degrees(atan2(R[1,0],R[0,0])); same as heading',
                       'decoded_label_index': 'zero-based index into decoder d_values grid',
-                      'max_memory_gb': args.max_memory_gb},
+                      'max_memory_gb': memory_budget_gb},
     }
     print(f"loading model once; images={len(images)}, ordered pairs={len(pairs)}", flush=True)
     runtime = LampRuntime(args.image_dir, args.vggt_weight, args.bundle, 'cuda')
