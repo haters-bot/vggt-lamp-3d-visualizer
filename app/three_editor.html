@@ -14,16 +14,17 @@
   aside{padding:16px 17px;overflow:auto;background:var(--surface);border-right:1px solid var(--rule-strong);scrollbar-color:#bdb8ae transparent}
   main{position:relative;min-width:0}.viewer{position:absolute;inset:0;background:var(--paper)}
   h2{font-family:Georgia,"Noto Serif SC","Songti SC",serif;font-size:15px;font-weight:600;margin:3px 0 11px;color:var(--ink)}h3{font-size:11px;margin:20px 0 8px;color:var(--academic-deep);text-transform:uppercase;letter-spacing:.13em;border-bottom:1px solid var(--rule);padding-bottom:5px}
-  label{font-size:11px;color:var(--ink-soft)}input[type=file],select,input[type=number]{width:100%;border:1px solid var(--rule-strong);background:var(--surface-strong);color:var(--ink);border-radius:3px;padding:7px;box-shadow:0 1px 0 #ffffff inset}
-  input[type=file]{margin-top:5px;padding:4px}input[type=file]::file-selector-button{margin-right:8px;border:1px solid var(--rule-strong);border-radius:2px;background:#efebe3;color:var(--ink);padding:4px 8px;cursor:pointer}input[type=checkbox]{accent-color:var(--academic)}.control{margin:9px 0}.control-head{display:grid;grid-template-columns:1fr 82px;gap:8px;align-items:center}.control input[type=range]{width:100%;accent-color:var(--academic)}
+  label{font-size:11px;color:var(--ink-soft)}select,input[type=number]{width:100%;border:1px solid var(--rule-strong);background:var(--surface-strong);color:var(--ink);border-radius:3px;padding:7px;box-shadow:0 1px 0 #ffffff inset}
+  input[type=checkbox]{accent-color:var(--academic)}.control{margin:9px 0}.control-head{display:grid;grid-template-columns:1fr 82px;gap:8px;align-items:center}.control input[type=range]{width:100%;accent-color:var(--academic)}
   .checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.checks label{display:flex;align-items:center;gap:6px}
   .buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}button{border:1px solid var(--rule-strong);background:#f0ede6;color:var(--ink);border-radius:3px;padding:8px;cursor:pointer;box-shadow:0 1px 0 #fff inset}button:hover{background:#e7e3da;border-color:#9f9b92}button.primary{background:var(--academic);border-color:var(--academic-deep);color:#fff;box-shadow:none}button.primary:hover{background:var(--academic-deep)}
   .hint{font-size:10.5px;line-height:1.58;color:var(--muted);margin:7px 0}.status{position:absolute;left:14px;bottom:102px;max-width:min(720px,75%);padding:8px 11px;border:1px solid #c9c5bb;border-radius:3px;background:#fffdfae8;color:var(--ink-soft);font-size:11px;box-shadow:0 4px 14px #625b4c1a;pointer-events:none}
   .report{margin-top:8px;padding:8px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb;color:var(--ink-soft);font-size:10.5px;line-height:1.58}.report strong{color:var(--ink)}.report.warn{border-color:#c9a47d;background:#f7efe4;color:var(--warn)}
   details.advanced{margin-top:10px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb}details.advanced summary{padding:9px 10px;color:var(--ink-soft);font-size:11px;cursor:pointer;user-select:none}details.advanced[open] summary{border-bottom:1px solid var(--rule)}.advanced-body{padding:2px 10px 10px}
   .pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pair-card{padding:6px;border:1px solid var(--rule);border-radius:3px;background:var(--surface-strong)}.pair-card img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:1px;margin-bottom:6px;background:#e6e2d9}.pair-card label{display:block}.pair-card select{margin-top:4px}.lamp-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--ink-soft)}.lamp-legend span:before{content:'';display:inline-block;width:11px;height:9px;margin-right:4px;background:var(--c);clip-path:polygon(0 50%,100% 0,100% 100%)}
+  .model-picker{display:grid;gap:7px}.model-card{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center;width:100%;padding:6px;text-align:left;background:var(--surface-strong)}.model-card img{display:block;width:86px;height:62px;object-fit:cover;border-radius:2px;background:#e6e2d9}.model-card strong,.model-card small{display:block}.model-card strong{font-size:11.5px;font-weight:600;color:var(--ink)}.model-card small{margin-top:4px;font-size:9.5px;color:var(--muted)}.model-card.selected{border-color:var(--academic);background:#edf1f2;box-shadow:0 0 0 1px var(--academic) inset}.model-card:disabled{cursor:wait;opacity:.72}
   .help{position:absolute;right:14px;top:14px;padding:6px 9px;border:1px solid #d2cec5;border-radius:3px;background:#fffdfad9;color:var(--muted);font-size:10px;pointer-events:none}
-  .camera-preview{display:none;position:absolute;right:14px;top:52px;width:min(440px,calc(100% - 28px));background:#fffdfaf2;border:1px solid var(--rule-strong);border-radius:4px;overflow:hidden;box-shadow:0 12px 30px #554d3c26;z-index:4}.preview-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--rule);font-family:Georgia,"Noto Serif SC",serif;font-size:12px;color:var(--ink)}.preview-head button{padding:3px 8px}.preview-canvas{height:300px;background:var(--paper)}.preview-canvas canvas{display:block;width:100%;height:100%}.preview-tools{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px}.preview-tools select{padding:5px}.preview-meta{padding:0 10px 9px;color:var(--muted);font-size:10.5px}
+  .camera-preview{display:none;position:absolute;right:14px;top:52px;width:min(440px,calc(100% - 28px));background:#fffdfaf2;border:1px solid var(--rule-strong);border-radius:4px;overflow:hidden;box-shadow:0 12px 30px #554d3c26;z-index:4}.preview-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--rule);font-family:Georgia,"Noto Serif SC",serif;font-size:12px;color:var(--ink)}.preview-head button{padding:3px 8px}.preview-canvas{height:300px;background:var(--paper)}.preview-canvas canvas{display:block;width:100%;height:100%}.preview-tools{display:flex;justify-content:flex-end;padding:8px}.preview-meta{padding:0 10px 9px;color:var(--muted);font-size:10.5px}
   .timeline-picker{position:absolute;left:18px;right:18px;bottom:14px;z-index:5;padding:9px 14px 10px;border:1px solid var(--rule-strong);border-radius:4px;background:#fffdfaec;box-shadow:0 8px 24px #554d3c24;backdrop-filter:blur(8px);user-select:none}.timeline-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--ink-soft);font-size:10.5px}.timeline-head span:last-child{color:var(--muted);white-space:nowrap}.timeline-track{position:relative;height:12px;margin:22px 8px 5px;border:1px solid #aaa69d;border-radius:2px;background:#e4e0d7;cursor:crosshair}.timeline-ticks{position:absolute;inset:0;pointer-events:none}.timeline-tick{position:absolute;top:3px;width:1px;height:5px;background:#8f8b8355}.timeline-tick.major{top:1px;height:9px;background:#6f6b6488}.timeline-marker{position:absolute;top:50%;width:15px;height:15px;transform:translate(-50%,-50%);border:2px solid #fffdfa;border-radius:50%;background:var(--marker);box-shadow:0 0 0 1px #56514a55;z-index:3;pointer-events:none}.timeline-marker.prediction{width:12px;height:12px;z-index:4}.timeline-marker span{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:2px 5px;border:1px solid var(--rule);border-radius:2px;background:#fffdfa;color:var(--marker);font-size:9.5px;white-space:nowrap}.timeline-hover{display:none;position:absolute;bottom:25px;width:92px;transform:translateX(-50%);padding:5px;border:1px solid var(--rule-strong);border-radius:3px;background:#fffdfa;box-shadow:0 5px 14px #554d3c24;pointer-events:none;z-index:6}.timeline-hover img{display:block;width:80px;height:58px;object-fit:cover;border-radius:1px}.timeline-hover span{display:block;margin-top:3px;text-align:center;color:var(--ink-soft);font-size:9.5px}
   @media(max-width:820px){body{overflow:auto}.layout{height:auto;grid-template-columns:1fr}.viewer{position:relative;height:70vh}aside{border-right:0}.help{display:none}.camera-preview{top:10px}.preview-canvas{height:230px}.timeline-picker{left:8px;right:8px}.timeline-head span:last-child{display:none}.status{bottom:104px}}
 </style>
@@ -33,18 +34,17 @@
 <div class="layout">
 <aside>
   <h2>三维数据</h2>
-  <label>VGGT / glTF 模型<input id="glbFile" type="file" accept=".glb,model/gltf-binary"></label>
+  <div id="modelPicker" class="model-picker" aria-label="内置建筑模型"></div>
+  <div class="hint">模型、实拍照片和预测缓存均已随程序打包；切换模型后自动加载对应资源。</div>
 
   <h3>VGGT 视觉估计轨迹</h3>
   <div class="hint">按 GLB 中的照片输入顺序提取相机光心，并用向心 Catmull–Rom 样条穿过全部光心。曲线不再使用 KML。</div>
   <div id="trajectoryReport" class="report">加载 GLB 后生成相机轨迹。</div>
 
   <h3>LaMP 两图相对定位</h3>
-  <div class="hint">选择 GLB 后自动切换对应实拍图和预测缓存；已登记模型不会回退到其他建筑的远程服务。</div>
-  <label>手动覆盖预测缓存 JSON<input id="lampCacheFile" type="file" accept=".json,application/json"></label>
+  <div class="hint">选择模型后自动切换对应实拍图和预测缓存；不会回退到其他建筑的远程服务。</div>
   <div id="cacheReport" class="hint">等待模型；识别后将自动加载对应图片和缓存。</div>
-  <label>预测点放置模式<select id="placementMode"><option value="angle" selected>angle on fitted orbit</option><option value="range">range</option></select></label>
-  <div class="hint">angle 使用旋转测地角 [0°,180°]，沿输入顺序选首个交点，无法区分整圈前后半圈。range 输出未在真实图上验证。</div>
+  <div class="hint">预测位置使用带方向的 range 序列步差，映射到拟合飞行轨迹上的连续位置。</div>
   <div class="pair-grid">
     <div class="pair-card"><img id="lampImageA" alt="起始图"><label>起始图<select id="lampFrameA"></select></label></div>
     <div class="pair-card"><img id="lampImageB" alt="目标图"><label>目标图<select id="lampFrameB"></select></label></div>
@@ -97,7 +97,7 @@
   <div id="cameraPreview" class="camera-preview">
     <div class="preview-head"><span>轨迹视角 · 点云模拟航拍图</span><button id="closePreview">关闭</button></div>
     <div id="previewCanvas" class="preview-canvas"></div>
-    <div class="preview-tools"><select id="previewMode"><option value="camera">插值 VGGT 镜头朝向</option><option value="center">始终朝向建筑中心</option></select><button id="downloadPreview">保存图片</button></div>
+    <div class="preview-tools"><button id="downloadPreview">保存图片</button></div>
     <label style="display:block;padding:0 8px 8px">保存分辨率<select id="previewResolution"><option value="440x300">440 × 300</option><option value="1280x720">1280 × 720</option><option value="1920x1080">1920 × 1080</option></select></label>
     <div id="previewMeta" class="preview-meta">请单击轨迹上的任意位置。</div>
   </div>
@@ -120,7 +120,7 @@
 import * as THREE from '/vendor/three.module.js';
 import {GLTFLoader} from '/vendor/GLTFLoader.js';
 import {configureSplat, EyeDomeRenderer, createCameraFrustum, createTaperedTubeGeometry} from '/rendering.js';
-import {fitOrbit, relativeBearing, pointAtAngle, validateCache} from '/orbit_math.js';
+import {validateCache} from '/orbit_math.js';
 
 const $=id=>document.getElementById(id), viewer=$('viewer'), statusEl=$('status');
 const MAX_SOURCE_POINTS=3000000;
@@ -142,8 +142,8 @@ function setStatus(text){statusEl.textContent=text;}
 
 let mainEDL,previewEDL;
 let currentModelName='';
-let renderer,scene,camera,grid,axes,modelRoot,autoAlignGroup,modelContent,curveGroup,curveLine,curveTube,cameraFrustumGroup,basePlaneMesh,previewRenderer,previewCamera,selectionMarker,fittedSpline,lampMarkerGroup;
-let rawCameraCenters=[],rawCameraFrames=[],cameraMeshes=[],curveSamples=[],modelPointSample=[],cameraCentersInModel=[],detectedBasePlane=null;
+let renderer,scene,camera,grid,axes,modelRoot,autoAlignGroup,modelContent,curveGroup,curveLine,curveTube,cameraFrustumGroup,cameraAnchorPoints,basePlaneMesh,previewRenderer,previewCamera,selectionMarker,fittedSpline,lampMarkerGroup;
+let rawCameraCenters=[],trajectoryCameraCenters=[],trajectoryOutlierIndices=[],rawCameraFrames=[],cameraMeshes=[],curveSamples=[],modelPointSample=[],cameraCentersInModel=[],detectedBasePlane=null;
 let lampSnapTargets=[];
 let yaw=.65,pitch=.38,distance=8,target=new THREE.Vector3(0,1,0),dragMode='',last=[0,0],renderPending=false,pointerTravel=0,selectedCurveT=null;
 
@@ -154,18 +154,27 @@ function init(){
   previewCamera=new THREE.PerspectiveCamera(42,440/300,.01,10000);previewRenderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});previewRenderer.setPixelRatio(1);previewRenderer.setSize(440,300,false);$('previewCanvas').appendChild(previewRenderer.domElement);mainEDL=new EyeDomeRenderer(renderer);previewEDL=new EyeDomeRenderer(previewRenderer);
   scene.add(new THREE.HemisphereLight(0xffffff,0xd8d2c5,2));const light=new THREE.DirectionalLight(0xfffdf8,2.2);light.position.set(4,8,6);scene.add(light);
   grid=new THREE.GridHelper(20,20,0x77736b,0xb8b3a9);axes=new THREE.AxesHelper(2);scene.add(grid,axes);grid.visible=$('showGrid').checked;axes.visible=$('showAxes').checked;
-  initLampControls();resize();$('summary').textContent='等待 VGGT / GLB 模型';setStatus('请选择 GLB 文件，工具将直接拟合相机拍摄轨迹');
+  initModelPicker();initLampControls();resize();$('summary').textContent='正在加载内置模型';setStatus('正在加载默认建筑模型及其照片与预测缓存…');
+  if(bundledModels.length){const initial=defaultModelHash&&modelImageProfiles[defaultModelHash]?defaultModelHash:bundledModels[0].hash;loadBundledModel(initial);}
 }
 
-let lampCache=null,lastLampResult=null,lampRequestGeneration=0;
+let lampCache=null,lampRequestGeneration=0;
 const imageSets=window.INITIAL_DATA.image_sets||{};
 const modelImageProfiles=window.INITIAL_DATA.model_image_profiles||{};
+const bundledModels=window.INITIAL_DATA.models||[];
+const defaultModelHash=window.INITIAL_DATA.default_model_hash||bundledModels[0]?.hash||'';
 const defaultImageSet=window.INITIAL_DATA.default_image_set||Object.keys(imageSets)[0]||'default';
 let activeImageSet=defaultImageSet;
 let activeImageProfile='默认图片';
 let activeModelProfile=null;
 let imageNames=(imageSets[activeImageSet]||window.INITIAL_DATA.images||Array.from({length:50},(_,i)=>`image-${String(i+1).padStart(2,'0')}.jpeg`)).slice();
 let timelineStartIndex=null,timelineEndIndex=null,timelinePredictionT=null,timelineAwaitingEnd=false;
+let modelLoadGeneration=0;
+function setModelPickerState(hash,disabled=false){document.querySelectorAll('.model-card').forEach(card=>{card.disabled=disabled;card.classList.toggle('selected',card.dataset.hash===hash);});}
+function initModelPicker(){
+  const host=$('modelPicker');host.replaceChildren();
+  bundledModels.forEach(model=>{const card=document.createElement('button'),preview=(imageSets[model.image_set]||[])[0];card.type='button';card.className='model-card';card.dataset.hash=model.hash;const image=document.createElement('img');image.alt=`${model.label} 预览`;image.loading='lazy';if(preview)image.src=`/uav-images/${encodeURIComponent(model.image_set)}/${encodeURIComponent(preview)}`;const text=document.createElement('span'),title=document.createElement('strong'),meta=document.createElement('small');title.textContent=model.label;meta.textContent=`${model.count} 张实拍图 · 离线预测缓存`;text.append(title,meta);card.append(image,text);card.addEventListener('click',()=>loadBundledModel(model.hash));host.appendChild(card);});
+}
 function imageUrl(frame){return `/uav-images/${encodeURIComponent(activeImageSet)}/${encodeURIComponent(imageNames[frame-1])}`;}
 function timelineName(index){return imageNames[index]?.replace(/\.[^.]+$/,'')||`image-${String(index+1).padStart(2,'0')}`;}
 function positionTimelineMarker(id,position,label){const marker=$(id);if(position===null||position===undefined||!Number.isFinite(position)){marker.hidden=true;return;}marker.hidden=false;marker.style.left=`${THREE.MathUtils.clamp(position,0,1)*100}%`;const text=marker.querySelector('span');if(text&&label)text.textContent=label;}
@@ -221,21 +230,7 @@ async function selectImagesForModel(hash){
   $('cacheReport').textContent=`${profile.label} · ${imageNames.length} 张实拍图片 · ${cacheResult.message} · GLB ${hash.slice(0,12)}…`;
   return{matched:true,message:`已匹配 ${profile.label} 的 ${imageNames.length} 张实拍图片；${cacheResult.message}`};
 }
-async function sha256Hex(buffer){
-  if(!crypto?.subtle)throw new Error('当前浏览器不支持 Web Crypto，无法识别模型指纹');
-  const digest=await crypto.subtle.digest('SHA-256',buffer);return Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('');
-}
-function selectionChanged(){lampRequestGeneration++;lastLampResult=null;clearLampMarkers();closeTrajectoryPreview();updateLampThumbnails();timelineStartIndex=number('lampFrameA',1)-1;timelineEndIndex=number('lampFrameB',1)-1;timelinePredictionT=null;timelineAwaitingEnd=false;updateTimelineMarkers('侧栏选择已同步；点击预测按钮，或点击长条开始新一组');$('lampReport').textContent='选择已更新，点击预测目标位置。';}
-async function loadLampCache(file){
-  if(!file)return;
-  try{
-    const cache=validateCache(JSON.parse(await file.text()));
-    if(rawCameraCenters.length&&cache.images.length!==rawCameraCenters.length)throw new Error(`缓存 ${cache.images.length} 张图，但 GLB 有 ${rawCameraCenters.length} 个相机`);
-    lampCache=cache;imageNames=cache.images;initLampControls();selectionChanged();
-    $('cacheReport').textContent=`${file.name} · ${cache.images.length} 张图 · ${Object.keys(cache.pairs).length} 对 · 键为输入顺序（从 0 开始）`;
-    setStatus('预测缓存已加载；命中时不会请求服务器');
-  }catch(error){$('cacheReport').textContent=`缓存加载失败：${error.message}`;setStatus($('cacheReport').textContent);}
-}
+function selectionChanged(){lampRequestGeneration++;clearLampMarkers();closeTrajectoryPreview();updateLampThumbnails();timelineStartIndex=number('lampFrameA',1)-1;timelineEndIndex=number('lampFrameB',1)-1;timelinePredictionT=null;timelineAwaitingEnd=false;updateTimelineMarkers('侧栏选择已同步；点击预测按钮，或点击长条开始新一组');$('lampReport').textContent='选择已更新，点击预测目标位置。';}
 function requestRender(){if(renderPending)return;renderPending=true;requestAnimationFrame(()=>{renderPending=false;updateCamera();mainEDL.render(scene,camera,$('useEDL').checked);});}
 function updateCamera(){const cp=Math.cos(pitch);camera.position.set(target.x+distance*Math.sin(yaw)*cp,target.y+distance*Math.sin(pitch),target.z+distance*Math.cos(yaw)*cp);camera.lookAt(target);}
 function resize(){const w=Math.max(viewer.clientWidth,320),h=Math.max(viewer.clientHeight,320);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();requestRender();}
@@ -318,7 +313,7 @@ function applyPointStyle(){
     o.material.sizeAttenuation=true;
   }});renderTrajectoryPreview();requestRender();
 }
-function setCameraMeshesVisible(visible){cameraMeshes.forEach(o=>o.visible=false);if(cameraFrustumGroup)cameraFrustumGroup.visible=visible;renderTrajectoryPreview();requestRender();}
+function setCameraMeshesVisible(visible){cameraMeshes.forEach(o=>o.visible=false);if(cameraFrustumGroup)cameraFrustumGroup.visible=visible;if(cameraAnchorPoints)cameraAnchorPoints.visible=visible;renderTrajectoryPreview();requestRender();}
 function applyLayers(){
   modelContent?.traverse(o=>{if(o.isPoints)o.visible=$('showPoints').checked;
     if(o.isMesh&&!cameraMeshes.includes(o))o.visible=$('showMesh').checked;});
@@ -326,35 +321,58 @@ function applyLayers(){
 }
 function refreshRendering(){scene.background.set($('background').value);renderTrajectoryPreview();requestRender();}
 function disposeObject(root){root?.traverse(o=>{o.geometry?.dispose?.();const materials=Array.isArray(o.material)?o.material:[o.material];materials.filter(Boolean).forEach(m=>{m.map?.dispose?.();m.dispose?.();});});}
-function loadGlb(file){
-  if(!file)return;lampRequestGeneration++;lastLampResult=null;resetTimelinePicker();currentModelName=file.name;setStatus('正在读取模型、提取 VGGT 相机并拟合轨迹…');
-  const reader=new FileReader();reader.onerror=()=>setStatus(`读取失败：${reader.error?.message||'未知错误'}`);reader.onload=async()=>{
-    let imageMatch={matched:false,message:'模型指纹识别失败'};
-    try{imageMatch=await selectImagesForModel(await sha256Hex(reader.result));}catch(error){$('cacheReport').textContent=error.message;}
-    new GLTFLoader().parse(reader.result,'',g=>{
-    closeTrajectoryPreview();if(selectionMarker){scene.remove(selectionMarker);disposeObject(selectionMarker);}if(modelRoot){scene.remove(modelRoot);disposeObject(modelRoot);}basePlaneMesh=null;selectionMarker=null;detectedBasePlane=null;modelPointSample=[];cameraCentersInModel=[];modelContent=g.scene;rawCameraCenters=extractCameraCenters(modelContent);
-    autoAlignGroup=new THREE.Group();curveGroup=new THREE.Group();autoAlignGroup.add(modelContent,curveGroup);modelRoot=new THREE.Group();modelRoot.add(autoAlignGroup);scene.add(modelRoot);
-    rebuildCurve();normalizeContent(autoAlignGroup,modelContent);modelRoot.updateMatrixWorld(true);modelPointSample=collectPointSample(modelContent,modelRoot,16000);cameraCentersInModel=rawCameraCenters.map(p=>p.clone().applyMatrix4(autoAlignGroup.matrix));initializePointSize();applyPointBudget();applyPointStyle();applyLayers();setCameraMeshesVisible($('showCameras').checked);setValues(RECOMMENDED);const grounded=autoOrientAndGround(false),restored=restoreAlignment(false);
-    fitView();let count=0;modelContent.traverse(o=>{if(o.isPoints)count+=o.geometry.getAttribute('position')?.count||0;});
-    $('summary').textContent=`${file.name} · ${rawCameraCenters.length} 个视觉相机点 · ${activeImageProfile}`;$('trajectoryReport').innerHTML=`<strong>已生成视觉估计轨迹</strong><br>${rawCameraCenters.length} 个相机光心 · 向心 Catmull–Rom 插值 · 曲线穿过全部光心`;
-    if(imageNames.length!==rawCameraCenters.length)$('cacheReport').textContent+=` · 注意：图片 ${imageNames.length} 张与相机 ${rawCameraCenters.length} 个不一致`;
-    if(lampCache&&lampCache.images.length!==rawCameraCenters.length)$('cacheReport').textContent=`缓存 ${lampCache.images.length} 张图与 GLB ${rawCameraCenters.length} 个相机不一致，请重新加载匹配缓存`;
-    setStatus(`已加载 ${file.name} · ${imageMatch.message} · 原始点云 ${count.toLocaleString()} 点 · ${grounded?'已自动扶正贴地':'请手动调整姿态'}${restored?' · 已恢复保存姿态':''}`);
-  },e=>setStatus(`GLB 解析失败：${e.message||e}`));};reader.readAsArrayBuffer(file);
+async function loadBundledModel(hash){
+  const profile=modelImageProfiles[hash];if(!profile)return;
+  const generation=++modelLoadGeneration;setModelPickerState(hash,true);setStatus(`正在加载 ${profile.label}…`);
+  try{
+    const response=await fetch(`/models/${encodeURIComponent(profile.file)}`);
+    if(!response.ok)throw new Error(`模型请求失败：HTTP ${response.status}`);
+    const buffer=await response.arrayBuffer();if(generation!==modelLoadGeneration)return;
+    await loadGlbBuffer(buffer,profile.file,hash);
+  }catch(error){if(generation===modelLoadGeneration){$('summary').textContent=`${profile.label} 加载失败`;setStatus(`内置模型加载失败：${error.message||error}`);}}
+  finally{if(generation===modelLoadGeneration)setModelPickerState(hash,false);}
+}
+async function loadGlbBuffer(buffer,fileName,hash){
+  lampRequestGeneration++;resetTimelinePicker();currentModelName=fileName;setStatus('正在解析模型、提取 VGGT 相机并拟合轨迹…');
+  let imageMatch={matched:false,message:'模型资源映射失败'};
+  try{imageMatch=await selectImagesForModel(hash);}catch(error){$('cacheReport').textContent=error.message;}
+  await new Promise((resolve,reject)=>new GLTFLoader().parse(buffer,'',g=>{try{
+      closeTrajectoryPreview();if(selectionMarker){scene.remove(selectionMarker);disposeObject(selectionMarker);}if(modelRoot){scene.remove(modelRoot);disposeObject(modelRoot);}basePlaneMesh=null;selectionMarker=null;detectedBasePlane=null;modelPointSample=[];cameraCentersInModel=[];modelContent=g.scene;rawCameraCenters=extractCameraCenters(modelContent);
+      autoAlignGroup=new THREE.Group();curveGroup=new THREE.Group();autoAlignGroup.add(modelContent,curveGroup);modelRoot=new THREE.Group();modelRoot.add(autoAlignGroup);scene.add(modelRoot);
+      rebuildCurve();normalizeContent(autoAlignGroup,modelContent);modelRoot.updateMatrixWorld(true);modelPointSample=collectPointSample(modelContent,modelRoot,16000);cameraCentersInModel=rawCameraCenters.map(p=>p.clone().applyMatrix4(autoAlignGroup.matrix));initializePointSize();applyPointBudget();applyPointStyle();applyLayers();setCameraMeshesVisible($('showCameras').checked);setValues(RECOMMENDED);const grounded=autoOrientAndGround(false),restored=restoreAlignment(false);
+      fitView();let count=0;modelContent.traverse(o=>{if(o.isPoints)count+=o.geometry.getAttribute('position')?.count||0;});
+      const correction=trajectoryOutlierIndices.length?`已近似修正 ${trajectoryOutlierIndices.length} 个离群光心：${trajectoryOutlierIndices.map(index=>timelineName(index)).join('、')}`:'未检测到明显离群光心';$('summary').textContent=`${fileName} · ${rawCameraCenters.length} 个视觉相机点 · ${activeImageProfile}`;$('trajectoryReport').innerHTML=`<strong>已生成稳健视觉估计轨迹</strong><br>${rawCameraCenters.length} 个相机光心 · 向心 Catmull–Rom 插值 · ${correction}`;
+      if(imageNames.length!==rawCameraCenters.length)$('cacheReport').textContent+=` · 注意：图片 ${imageNames.length} 张与相机 ${rawCameraCenters.length} 个不一致`;
+      if(lampCache&&lampCache.images.length!==rawCameraCenters.length)$('cacheReport').textContent=`缓存 ${lampCache.images.length} 张图与 GLB ${rawCameraCenters.length} 个相机不一致`;
+      setStatus(`已加载 ${fileName} · ${imageMatch.message} · 原始点云 ${count.toLocaleString()} 点 · ${grounded?'已自动扶正贴地':'请手动调整姿态'}${restored?' · 已恢复保存姿态':''}`);resolve();
+    }catch(error){reject(error);}},reject));
 }
 
 function cameraFrustumBaseSize(){
-  if(rawCameraCenters.length<2)return 1;
-  const pathSize=new THREE.Box3().setFromPoints(rawCameraCenters).getSize(new THREE.Vector3()).length()||1,distances=[];
-  for(let i=1;i<rawCameraCenters.length;i++)distances.push(rawCameraCenters[i].distanceTo(rawCameraCenters[i-1]));
+  const centers=trajectoryCameraCenters.length?trajectoryCameraCenters:rawCameraCenters;if(centers.length<2)return 1;
+  const pathSize=new THREE.Box3().setFromPoints(centers).getSize(new THREE.Vector3()).length()||1,distances=[];
+  for(let i=1;i<centers.length;i++)distances.push(centers[i].distanceTo(centers[i-1]));
   distances.sort((a,b)=>a-b);const medianSpacing=distances[Math.floor(distances.length/2)]||pathSize*.04;
   return Math.max(pathSize*.018,Math.min(pathSize*.075,medianSpacing*.68));
 }
+function medianValue(values){if(!values.length)return 0;const sorted=values.slice().sort((a,b)=>a-b);return sorted[Math.floor(sorted.length/2)];}
+function regularizeCameraPath(points){
+  const cleaned=points.map(point=>point.clone());if(points.length<5)return{points:cleaned,outliers:[]};
+  const spacings=[];for(let i=1;i<points.length;i++)spacings.push(points[i].distanceTo(points[i-1]));const medianSpacing=medianValue(spacings);
+  const residuals=[];for(let i=1;i<points.length-1;i++){const expected=points[i-1].clone().lerp(points[i+1],.5);residuals.push({index:i,distance:points[i].distanceTo(expected)});}
+  const medianResidual=medianValue(residuals.map(item=>item.distance)),mad=medianValue(residuals.map(item=>Math.abs(item.distance-medianResidual))),threshold=Math.max(medianResidual+3*1.4826*mad,medianSpacing*.3),outliers=residuals.filter(item=>item.distance>threshold).map(item=>item.index),outlierSet=new Set(outliers);
+  for(const index of outliers){let left=index-1,right=index+1;while(left>0&&outlierSet.has(left))left--;while(right<points.length-1&&outlierSet.has(right))right++;const alpha=(index-left)/(right-left);cleaned[index]=points[left].clone().lerp(points[right],alpha);}
+  return{points:cleaned,outliers};
+}
+function cameraAnchors(points,radius,color,opacity){
+  const anchors=new THREE.InstancedMesh(new THREE.SphereGeometry(radius,10,7),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthTest:false,depthWrite:false}),points.length),matrix=new THREE.Matrix4();points.forEach((point,index)=>{matrix.makeTranslation(point.x,point.y,point.z);anchors.setMatrixAt(index,matrix);});anchors.instanceMatrix.needsUpdate=true;anchors.frustumCulled=false;anchors.renderOrder=9;return anchors;
+}
 function rebuildCurve(){
-  if(!curveGroup)return;disposeObject(curveGroup);curveGroup.clear();curveLine=null;curveTube=null;cameraFrustumGroup=null;fittedSpline=null;curveSamples=[];lampMarkerGroup=null;
+  if(!curveGroup)return;disposeObject(curveGroup);curveGroup.clear();curveLine=null;curveTube=null;cameraFrustumGroup=null;cameraAnchorPoints=null;fittedSpline=null;curveSamples=[];lampMarkerGroup=null;trajectoryCameraCenters=[];trajectoryOutlierIndices=[];
   if(rawCameraCenters.length<2){$('trajectoryReport').textContent=`只提取到 ${rawCameraCenters.length} 个相机，至少需要 2 个光心才能生成轨迹。`;return;}
-  fittedSpline=new THREE.CatmullRomCurve3(rawCameraCenters.map(p=>p.clone()),false,'centripetal',.5);curveSamples=fittedSpline.getPoints(Math.max(240,rawCameraCenters.length*40));
-  const pathSize=new THREE.Box3().setFromPoints(rawCameraCenters).getSize(new THREE.Vector3()).length()||1;
+  const regularized=regularizeCameraPath(rawCameraCenters);trajectoryCameraCenters=regularized.points;trajectoryOutlierIndices=regularized.outliers;
+  fittedSpline=new THREE.CatmullRomCurve3(trajectoryCameraCenters.map(p=>p.clone()),false,'centripetal',.5);curveSamples=fittedSpline.getPoints(Math.max(240,trajectoryCameraCenters.length*40));
+  const pathSize=new THREE.Box3().setFromPoints(trajectoryCameraCenters).getSize(new THREE.Vector3()).length()||1;
   curveTube=new THREE.Mesh(
     createTaperedTubeGeometry(fittedSpline,Math.max(320,rawCameraCenters.length*24),8,pathSize*.0027,pathSize*.0007,0x526f82,0xa0aaad),
     new THREE.MeshBasicMaterial({color:0xffffff,vertexColors:true,transparent:true,opacity:.76,depthWrite:false}),
@@ -363,8 +381,9 @@ function rebuildCurve(){
   curveLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints(curveSamples),new THREE.LineBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
   cameraFrustumGroup=new THREE.Group();
   const frustumSize=cameraFrustumBaseSize();
-  rawCameraFrames.forEach(frame=>cameraFrustumGroup.add(createCameraFrustum(frame.center,frame.forward,frame.up,0x7c8990,frustumSize,{opacity:.09,role:'ordinary'})));
-  curveGroup.add(curveTube,curveLine,cameraFrustumGroup);applyCurveTransform();setCameraMeshesVisible($('showCameras').checked);
+  rawCameraFrames.forEach((frame,index)=>cameraFrustumGroup.add(createCameraFrustum(trajectoryCameraCenters[index],frame.forward,frame.up,0x7c8990,frustumSize,{opacity:.09,role:'ordinary'})));
+  cameraAnchorPoints=cameraAnchors(trajectoryCameraCenters,frustumSize*.052,0x667985,.42);
+  curveGroup.add(curveTube,curveLine,cameraFrustumGroup,cameraAnchorPoints);applyCurveTransform();setCameraMeshesVisible($('showCameras').checked);
 }
 function applyCurveTransform(){if(!curveGroup)return;curveGroup.visible=true;const visible=$('showCurve').checked;if(curveTube)curveTube.visible=visible;if(curveLine)curveLine.visible=visible;requestRender();}
 
@@ -372,6 +391,7 @@ function lampAssistLine(start,end,color,dashed=false){
   const material=dashed?new THREE.LineDashedMaterial({color,dashSize:.12,gapSize:.07,transparent:true,opacity:.74,depthTest:false,depthWrite:false}):new THREE.LineBasicMaterial({color,transparent:true,opacity:.65,depthTest:false,depthWrite:false});
   const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([start,end]),material);if(dashed)line.computeLineDistances();line.renderOrder=20;return line;
 }
+function lampAnchor(point,color,radius){const marker=new THREE.Mesh(new THREE.SphereGeometry(radius,18,12),new THREE.MeshBasicMaterial({color,depthTest:false,depthWrite:false}));marker.position.copy(point);marker.renderOrder=22;return marker;}
 function clearLampMarkers(){lampSnapTargets=[];if(!lampMarkerGroup)return;curveGroup?.remove(lampMarkerGroup);disposeObject(lampMarkerGroup);lampMarkerGroup=null;requestRender();}
 function lampFrameStep(frame){return frame<=1?0:4+5*(frame-2);}
 function lampStepToCurveIndex(step,count){
@@ -385,40 +405,32 @@ function showLampResult(result){
   if(!curveGroup||rawCameraCenters.length<2)throw new Error('请先加载包含相机的 GLB 模型');
   const frameA=Number(result.frame_a),frameB=Number(result.frame_b),indexA=frameA-1,indexB=frameB-1,c=result.continuous;
   if(indexA<0||indexB<0||indexA>=rawCameraCenters.length||indexB>=rawCameraCenters.length)throw new Error('所选帧超出 GLB 相机范围');
-  let placement,detail;
-  if($('placementMode').value==='angle'){
-    const orbit=fitOrbit(rawCameraCenters,smallestEigenvector3),angle=Number(c.rotation_angle_deg);
-    if(c.rotation_angle_deg===undefined)throw new Error('服务缺少 rotation_angle_deg，请更新远端脚本或加载预测缓存');
-    placement=pointAtAngle(fittedSpline,rawCameraCenters,indexA,angle,orbit);
-    const targetAngle=relativeBearing(rawCameraCenters[indexB],rawCameraCenters[indexA],orbit);
-    const placedAngle=relativeBearing(placement.point,rawCameraCenters[indexA],orbit);
-    detail=`rotation ${angle.toFixed(3)}° · 所选目标方位角 ${targetAngle.toFixed(3)}° · 角差（预测−目标） ${(angle-targetAngle).toFixed(3)}°\n实际放置角 ${placedAngle.toFixed(3)}°；沿输入顺序首个交点（测地角存在前后半圈歧义）`;
-  }else{
-    const step=lampFrameStep(frameA)-2*Number(c.selected_range_m),index=lampStepToCurveIndex(step,rawCameraCenters.length);
-    if(!Number.isFinite(index))throw new Error('无效 range 输出');
-    const t=Math.max(0,Math.min(rawCameraCenters.length-1,index))/(rawCameraCenters.length-1);
-    placement={t,point:fittedSpline.getPoint(t),outside:index<0||index>rawCameraCenters.length-1};
-    detail=`range ${Number(c.selected_range_m).toFixed(3)} m · 相差 ${(index-indexB).toFixed(3)} 帧\n按旧数据 -0.5 m/step 换算；range 输出未在真实图上验证`;
-  }
-  const sourceFrame=rawCameraFrames[indexA],targetFrame=rawCameraFrames[indexB],predictedFrame=interpolatedCameraFrame(placement.t),frustumSize=cameraFrustumBaseSize();
+  const step=lampFrameStep(frameA)-2*Number(c.selected_range_m),index=lampStepToCurveIndex(step,rawCameraCenters.length);
+  if(!Number.isFinite(index))throw new Error('无效 range 输出');
+  const t=Math.max(0,Math.min(trajectoryCameraCenters.length-1,index))/(trajectoryCameraCenters.length-1),placement={t,point:fittedSpline.getPoint(t),outside:index<0||index>trajectoryCameraCenters.length-1};
+  const detail=`range ${Number(c.selected_range_m).toFixed(3)} · 与所选目标相差 ${(index-indexB).toFixed(3)} 帧\n按训练标签 -0.5/step 反算连续序列位置`;
+  const sourcePoint=trajectoryCameraCenters[indexA],targetPoint=trajectoryCameraCenters[indexB],sourceFrame=rawCameraFrames[indexA],targetFrame=rawCameraFrames[indexB],predictedFrame=centerFacingLocalFrame(placement.point),frustumSize=cameraFrustumBaseSize();
   if(!sourceFrame||!targetFrame||!predictedFrame)throw new Error('GLB 相机朝向信息不完整，无法绘制视锥');
   lampMarkerGroup=new THREE.Group();
   lampMarkerGroup.add(
-    createCameraFrustum(rawCameraCenters[indexA],sourceFrame.forward,sourceFrame.up,0x315f8c,frustumSize*1.55,{emphasized:true,faceOpacity:.14,role:'source'}),
-    createCameraFrustum(rawCameraCenters[indexB],targetFrame.forward,targetFrame.up,0x647d68,frustumSize*1.55,{emphasized:true,faceOpacity:.14,role:'target'}),
+    createCameraFrustum(sourcePoint,sourceFrame.forward,sourceFrame.up,0x315f8c,frustumSize*1.55,{emphasized:true,faceOpacity:.14,role:'source'}),
+    createCameraFrustum(targetPoint,targetFrame.forward,targetFrame.up,0x647d68,frustumSize*1.55,{emphasized:true,faceOpacity:.14,role:'target'}),
     createCameraFrustum(placement.point,predictedFrame.forward,predictedFrame.up,0xb27a32,frustumSize*1.7,{emphasized:true,faceOpacity:.17,role:'prediction'}),
-    lampAssistLine(rawCameraCenters[indexA],rawCameraCenters[indexB],0x647d68,false),
-    lampAssistLine(rawCameraCenters[indexA],placement.point,0xb27a32,true),
+    lampAnchor(sourcePoint,0x315f8c,frustumSize*.095),
+    lampAnchor(targetPoint,0x647d68,frustumSize*.095),
+    lampAnchor(placement.point,0xb27a32,frustumSize*.115),
+    lampAssistLine(sourcePoint,targetPoint,0x647d68,false),
+    lampAssistLine(sourcePoint,placement.point,0xb27a32,true),
   );
   curveGroup.add(lampMarkerGroup);
   lampSnapTargets=[
-    {label:'起始视锥',t:indexA/(rawCameraCenters.length-1),point:rawCameraCenters[indexA].clone(),forward:sourceFrame.forward.clone(),size:frustumSize*1.55},
+    {label:'起始视锥',t:indexA/(trajectoryCameraCenters.length-1),point:sourcePoint.clone(),forward:sourceFrame.forward.clone(),size:frustumSize*1.55},
     {label:'预测视锥',t:placement.t,point:placement.point.clone(),forward:predictedFrame.forward.clone(),size:frustumSize*1.7},
-    {label:'实际终止视锥',t:indexB/(rawCameraCenters.length-1),point:rawCameraCenters[indexB].clone(),forward:targetFrame.forward.clone(),size:frustumSize*1.55},
+    {label:'实际终止视锥',t:indexB/(trajectoryCameraCenters.length-1),point:targetPoint.clone(),forward:targetFrame.forward.clone(),size:frustumSize*1.55},
   ];
   timelineStartIndex=indexA;timelineEndIndex=indexB;timelinePredictionT=placement.t;timelineAwaitingEnd=false;updateTimelineMarkers(`预测完成：${timelineName(indexA)} → ${timelineName(indexB)}，橙色为连续预测位置`);
   $('lampReport').className=`report${placement.outside?' warn':''}`;$('lampReport').style.whiteSpace='pre-line';
-  $('lampReport').textContent=`来源：${result.source} · ${$('placementMode').value} · 连续输入序号 ${(placement.t*(rawCameraCenters.length-1)).toFixed(3)}\n${detail}${placement.outside?'\n当前轨迹前进范围无匹配位置，显示最接近的可达点。':''}\nMAP-hard 仅供参考，不参与放置。`;
+  $('lampReport').textContent=`来源：${result.source} · range · 连续输入序号 ${(placement.t*(trajectoryCameraCenters.length-1)).toFixed(3)}\n${detail}${placement.outside?'\n预测超出当前轨迹范围，显示最接近的可达点。':''}\nMAP-hard 仅供参考，不参与放置。`;
   selectedCurveT=placement.t;renderTrajectoryPreview();requestRender();
 }
 async function runLampInference(){
@@ -439,7 +451,7 @@ async function runLampInference(){
       result=await response.json();if(!response.ok)throw new Error(result.error||`HTTP ${response.status}`);result.source='server';
     }
     if(generation!==lampRequestGeneration)return;
-    showLampResult(result);lastLampResult=result;setStatus(`LaMP 结果来源：${result.source}`);
+    showLampResult(result);setStatus(`LaMP 结果来源：${result.source}`);
   }catch(error){if(generation===lampRequestGeneration){$('lampReport').className='report warn';$('lampReport').textContent=`预测失败：${error.message}`;updateTimelineMarkers('预测失败；点击长条重新选择起始图');setStatus($('lampReport').textContent);}}
   finally{button.disabled=false;button.textContent='预测目标位置';}
 }
@@ -450,25 +462,24 @@ function updateTimelineHover(event){
 }
 function chooseTimelineFrame(index){
   if(!timelineAwaitingEnd){
-    lampRequestGeneration++;lastLampResult=null;clearLampMarkers();closeTrajectoryPreview();timelineStartIndex=index;timelineEndIndex=null;timelinePredictionT=null;timelineAwaitingEnd=true;$('lampFrameA').value=String(index+1);updateLampThumbnails();updateTimelineMarkers(`已选择起点 ${timelineName(index)}；请再点击一次选择终点`);$('lampReport').textContent='已选择起始图，等待选择终止图。';return;
+    lampRequestGeneration++;clearLampMarkers();closeTrajectoryPreview();timelineStartIndex=index;timelineEndIndex=null;timelinePredictionT=null;timelineAwaitingEnd=true;$('lampFrameA').value=String(index+1);updateLampThumbnails();updateTimelineMarkers(`已选择起点 ${timelineName(index)}；请再点击一次选择终点`);$('lampReport').textContent='已选择起始图，等待选择终止图。';return;
   }
   if(index===timelineStartIndex){updateTimelineMarkers('起点与终点不能相同，请点击另一个位置');return;}
   timelineEndIndex=index;timelinePredictionT=null;timelineAwaitingEnd=false;$('lampFrameB').value=String(index+1);updateLampThumbnails();updateTimelineMarkers(`已选择终点 ${timelineName(index)}；准备预测…`);runLampInference();
 }
 
-function interpolatedCameraFrame(t){
-  if(!rawCameraFrames.length)return null;const u=Math.max(0,Math.min(rawCameraFrames.length-1,t*(rawCameraFrames.length-1))),i=Math.floor(u),j=Math.min(rawCameraFrames.length-1,i+1),alpha=u-i,a=rawCameraFrames[i],b=rawCameraFrames[j],forward=a.forward.clone().lerp(b.forward,alpha).normalize(),up=a.up.clone().lerp(b.up,alpha).normalize();up.addScaledVector(forward,-up.dot(forward)).normalize();return{forward,up,i,j,alpha};
+function centerFacingLocalFrame(point){
+  scene.updateMatrixWorld(true);const centerWorld=pointCloudBounds(modelContent).getCenter(new THREE.Vector3()),centerLocal=curveGroup.worldToLocal(centerWorld.clone()),forward=centerLocal.sub(point).normalize();let up=new THREE.Vector3(0,1,0);
+  if(!Number.isFinite(forward.x)||forward.lengthSq()<1e-8)forward.set(0,-.2,-1).normalize();if(Math.abs(forward.dot(up))>.98)up.set(0,0,1);up.addScaledVector(forward,-up.dot(forward)).normalize();return{forward,up};
 }
 function updateSelectionMarker(worldPoint){
   if(!selectionMarker){selectionMarker=new THREE.Mesh(new THREE.SphereGeometry(.052,16,12),new THREE.MeshBasicMaterial({color:0xb27a32,depthTest:false}));scene.add(selectionMarker);}selectionMarker.position.copy(worldPoint);selectionMarker.visible=true;
 }
 function renderTrajectoryPreview(){
-  if(selectedCurveT===null||!fittedSpline||!curveGroup||!modelContent)return;scene.updateMatrixWorld(true);const localPoint=fittedSpline.getPoint(selectedCurveT),worldPoint=localPoint.clone().applyMatrix4(curveGroup.matrixWorld),mode=$('previewMode').value,frame=interpolatedCameraFrame(selectedCurveT);let forward,up;
-  if(mode==='camera'&&frame){forward=frame.forward.clone().transformDirection(curveGroup.matrixWorld);up=frame.up.clone().transformDirection(curveGroup.matrixWorld);}else{forward=pointCloudBounds(modelContent).getCenter(new THREE.Vector3()).sub(worldPoint).normalize();up=new THREE.Vector3(0,1,0);}
-  if(!Number.isFinite(forward.x)||forward.lengthSq()<1e-8)forward=new THREE.Vector3(0,-.2,-1).normalize();if(Math.abs(forward.dot(up))>.98)up=new THREE.Vector3(0,1,0).cross(forward).cross(forward).normalize();
+  if(selectedCurveT===null||!fittedSpline||!curveGroup||!modelContent)return;scene.updateMatrixWorld(true);const localPoint=fittedSpline.getPoint(selectedCurveT),worldPoint=localPoint.clone().applyMatrix4(curveGroup.matrixWorld),frame=centerFacingLocalFrame(localPoint),forward=frame.forward.clone().transformDirection(curveGroup.matrixWorld),up=frame.up.clone().transformDirection(curveGroup.matrixWorld);
   previewCamera.position.copy(worldPoint);previewCamera.up.copy(up);previewCamera.lookAt(worldPoint.clone().add(forward));previewCamera.updateMatrixWorld(true);updateSelectionMarker(worldPoint);$('cameraPreview').style.display='block';const host=$('previewCanvas'),[w,h]=$('previewResolution').value.split('x').map(Number);host.style.height='auto';host.style.aspectRatio=`${w} / ${h}`;previewRenderer.setSize(w,h,false);previewCamera.aspect=w/h;previewCamera.updateProjectionMatrix();
   const hidden=[grid,axes,curveGroup,basePlaneMesh,selectionMarker,...cameraMeshes].filter(Boolean),states=hidden.map(o=>o.visible);hidden.forEach(o=>o.visible=false);previewEDL.render(scene,previewCamera,$('useEDL').checked);hidden.forEach((o,index)=>o.visible=states[index]);
-  const u=selectedCurveT*Math.max(1,rawCameraFrames.length-1),left=Math.floor(u)+1,right=Math.min(rawCameraFrames.length,Math.ceil(u)+1);$('previewMeta').textContent=`轨迹 ${(selectedCurveT*100).toFixed(1)}% · 位于相机 ${left}${right!==left?` 与 ${right} 之间`:''} · ${mode==='camera'?'插值镜头朝向':'朝向建筑中心'}`;requestRender();
+  const u=selectedCurveT*Math.max(1,rawCameraFrames.length-1),left=Math.floor(u)+1,right=Math.min(rawCameraFrames.length,Math.ceil(u)+1);$('previewMeta').textContent=`轨迹 ${(selectedCurveT*100).toFixed(1)}% · 位于相机 ${left}${right!==left?` 与 ${right} 之间`:''} · 镜头朝向建筑中心`;requestRender();
 }
 function handleCurvePick(event){
   if(!curveLine||!curveSamples.length)return;const rect=renderer.domElement.getBoundingClientRect(),pointer=new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),raycaster=new THREE.Raycaster();raycaster.params.Line.threshold=.09;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(curveLine,false)[0];if(!hit)return;const local=curveGroup.worldToLocal(hit.point.clone());let best=0,bestDistance=Infinity;for(let i=0;i<curveSamples.length;i++){const distance=curveSamples[i].distanceToSquared(local);if(distance<bestDistance){bestDistance=distance;best=i;}}selectedCurveT=best/Math.max(1,curveSamples.length-1);renderTrajectoryPreview();setStatus(`已选择轨迹 ${(selectedCurveT*100).toFixed(1)}% 位置并生成模拟航拍视角`);
@@ -497,14 +508,12 @@ $('useEDL').addEventListener('change',refreshRendering);
 $('roundSplats').addEventListener('change',applyPointStyle);
 $('showPoints').addEventListener('change',applyLayers);$('showMesh').addEventListener('change',applyLayers);
 $('previewResolution').addEventListener('change',renderTrajectoryPreview);
-$('glbFile').addEventListener('change',e=>loadGlb(e.target.files[0]));
 $('lampFrameA').addEventListener('change',selectionChanged);$('lampFrameB').addEventListener('change',selectionChanged);
-$('lampCacheFile').addEventListener('change',e=>loadLampCache(e.target.files[0]));
-$('placementMode').addEventListener('change',()=>{if(lastLampResult){try{showLampResult(lastLampResult);}catch(error){$('lampReport').textContent=error.message;}}});$('runLamp').addEventListener('click',runLampInference);
+$('runLamp').addEventListener('click',runLampInference);
 $('pointBudget').addEventListener('change',applyPointBudget);
 $('showGrid').addEventListener('change',()=>{grid.visible=$('showGrid').checked;requestRender();});$('showAxes').addEventListener('change',()=>{axes.visible=$('showAxes').checked;requestRender();});$('showCameras').addEventListener('change',()=>setCameraMeshesVisible($('showCameras').checked));$('showCurve').addEventListener('change',applyCurveTransform);$('showBasePlane').addEventListener('change',()=>{if(basePlaneMesh)basePlaneMesh.visible=$('showBasePlane').checked;requestRender();});
 $('autoGround').addEventListener('click',()=>autoOrientAndGround(true));$('flipGround').addEventListener('click',flipDetectedGround);
-$('previewMode').addEventListener('change',renderTrajectoryPreview);$('closePreview').addEventListener('click',closeTrajectoryPreview);$('downloadPreview').addEventListener('click',downloadTrajectoryPreview);
+$('closePreview').addEventListener('click',closeTrajectoryPreview);$('downloadPreview').addEventListener('click',downloadTrajectoryPreview);
 $('saveAlignment').addEventListener('click',saveAlignment);$('restoreAlignment').addEventListener('click',()=>restoreAlignment(true));$('resetAlignment').addEventListener('click',()=>{setValues(RECOMMENDED);setStatus('已恢复推荐场景姿态');});$('fitView').addEventListener('click',fitView);$('resetView').addEventListener('click',fitView);
 $('timelineTrack').addEventListener('pointermove',updateTimelineHover);$('timelineTrack').addEventListener('pointerleave',()=>{$('timelineHover').style.display='none';});$('timelineTrack').addEventListener('click',e=>chooseTimelineFrame(timelineIndexFromEvent(e)));
 viewer.addEventListener('contextmenu',e=>e.preventDefault());viewer.addEventListener('pointerdown',e=>{dragMode=e.button===2?'pan':'orbit';last=[e.clientX,e.clientY];pointerTravel=0;viewer.setPointerCapture(e.pointerId);});viewer.addEventListener('pointermove',e=>{if(!dragMode)return;const dx=e.clientX-last[0],dy=e.clientY-last[1];pointerTravel+=Math.hypot(dx,dy);last=[e.clientX,e.clientY];if(dragMode==='orbit'){yaw+=dx*.009;pitch=Math.max(-1.45,Math.min(1.45,pitch+dy*.009));}else{const right=new THREE.Vector3();camera.getWorldDirection(right);right.cross(camera.up).normalize();const up=camera.up.clone();target.addScaledVector(right,-dx*distance*.0015).addScaledVector(up,dy*distance*.0015);}requestRender();});viewer.addEventListener('pointerup',()=>dragMode='');viewer.addEventListener('pointercancel',()=>dragMode='');viewer.addEventListener('click',e=>{if(pointerTravel<4&&!handleLampSnap(e))handleCurvePick(e);});viewer.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(1,Math.min(80,distance*Math.exp(e.deltaY*.001)));requestRender();},{passive:false});viewer.addEventListener('dblclick',fitView);

@@ -27,19 +27,11 @@ mkdir -p "$output_root"
 images_1565="$setup_root/building_1565_images_01_50"
 images_0839="$setup_root/building_0839_images_01_50"
 images_1374="$setup_root/building_1374_images_01_50"
-images_1565_08="$setup_root/building_1565_images_01_08"
 
 for image_dir in "$images_1565" "$images_0839" "$images_1374"; do
   [[ -d "$image_dir" ]] || { echo "missing image directory: $image_dir" >&2; exit 1; }
   count=$(find "$image_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | wc -l)
   [[ "$count" -eq 50 ]] || { echo "expected 50 images in $image_dir, observed $count" >&2; exit 1; }
-done
-
-mkdir -p "$images_1565_08"
-for number in $(seq -f '%02g' 1 8); do
-  source_path="$images_1565/image-$number.jpeg"
-  [[ -f "$source_path" ]] || { echo "missing 8-view source image: $source_path" >&2; exit 1; }
-  cp -n "$source_path" "$images_1565_08/"
 done
 
 run_cache() {
@@ -67,7 +59,6 @@ run_cache() {
   echo "ready: $final_path"
 }
 
-run_cache "1565_08" "$images_1565_08" 8 "building_1565_images_01_08.lamp_cache.json"
 run_cache "1565_50" "$images_1565" 50 "building_1565_images_01_50.lamp_cache.json"
 run_cache "0839_50" "$images_0839" 50 "building_0839_images_01_50.lamp_cache.json"
 run_cache "1374_50" "$images_1374" 50 "building_1374_images_01_50.lamp_cache.json"

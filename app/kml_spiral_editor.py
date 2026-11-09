@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import mimetypes
@@ -29,38 +30,43 @@ from image_order import ordered_images
 
 IMAGE_LIBRARY_DIR = PROJECT_DIR.parent / "reconstruction_inputs"
 CACHE_LIBRARY_DIR = PROJECT_DIR.parent / "prediction_caches"
+MODEL_LIBRARY_DIR = PROJECT_DIR.parent / "models"
 DEFAULT_IMAGE_SET = "building_1565_images_01_50"
 UAV_IMAGE_DIR = IMAGE_LIBRARY_DIR / DEFAULT_IMAGE_SET
+DEFAULT_MODEL_HASH = "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977"
 
-# The source image names are not stored in VGGT's GLB.  These content hashes
-# provide a stable association for the fixed model library, even if a GLB is
-# renamed after downloading it.
+# Bind every verified bundled GLB to its source images and prediction cache.
 MODEL_IMAGE_PROFILES = {
-    "a5390091ed2e71c5b77debe1e614078ff50b23dd0901c2c0e765c604f62fa3b6": {
-        "image_set": DEFAULT_IMAGE_SET,
-        "count": 8,
-        "label": "building_1565（8 图模型）",
-        "cache": "building_1565_images_01_08.lamp_cache.json",
-    },
     "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977": {
         "image_set": DEFAULT_IMAGE_SET,
         "count": 50,
         "label": "building_1565",
+        "file": "building_1565_50views.glb",
         "cache": "building_1565_images_01_50.lamp_cache.json",
     },
     "58edb309a106a139690594b562d346d169209c4c920ad1730b45d40f7ad30269": {
         "image_set": "building_0839_images_01_50",
         "count": 50,
         "label": "building_0839",
+        "file": "building_0839_50views.glb",
         "cache": "building_0839_images_01_50.lamp_cache.json",
     },
     "463f6de2988c384399a2c379f6d6bd8addb4fa510627b1268eae80ebea3c2614": {
         "image_set": "building_1374_images_01_50",
         "count": 50,
         "label": "building_1374",
+        "file": "building_1374_50views.glb",
         "cache": "building_1374_images_01_50.lamp_cache.json",
     },
 }
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 @dataclass
@@ -231,6 +237,8 @@ def build_html(
         "image_sets": {name: [p.name for p in images] for name, images in image_sets.items()},
         "default_image_set": default_image_set,
         "model_image_profiles": MODEL_IMAGE_PROFILES,
+        "models": [{"hash": model_hash, **profile} for model_hash, profile in MODEL_IMAGE_PROFILES.items()],
+        "default_model_hash": DEFAULT_MODEL_HASH,
     }
     template = HTML_TEMPLATE.read_text(encoding="utf-8")
     return template.replace(
@@ -251,6 +259,7 @@ def serve(
     page = html.encode("utf-8")
     image_paths = {set_name: {p.name: p for p in images} for set_name, images in image_sets.items()}
     cache_names = {profile["cache"] for profile in MODEL_IMAGE_PROFILES.values()}
+    model_paths = {profile["file"]: MODEL_LIBRARY_DIR / profile["file"] for profile in MODEL_IMAGE_PROFILES.values()}
     assets = {
         "/orbit_math.js": PROJECT_DIR / "orbit_math.js",
         "/rendering.js": PROJECT_DIR / "rendering.js",
@@ -297,6 +306,23 @@ def serve(
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
                 self.send_header("Cache-Control", "no-cache")
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            if request_path.startswith("/models/"):
+                name = unquote(request_path[len("/models/"):])
+                if name not in model_paths or "/" in name or "\\" in name:
+                    self.send_error(404, "Unknown bundled model")
+                    return
+                path = model_paths[name]
+                if not path.is_file():
+                    self.send_error(404, "Bundled model is missing")
+                    return
+                content = path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "model/gltf-binary")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Cache-Control", "public, max-age=3600")
                 self.end_headers()
                 self.wfile.write(content)
                 return
@@ -379,11 +405,6 @@ def serve(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kml", type=Path, default=DEFAULT_KML, help="Input KML containing LookAt samples")
-    parser.add_argument(
-        "--image-dir",
-        type=Path,
-        help="Use one custom image directory instead of the bundled fixed-model image library",
-    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=7872)
     parser.add_argument(
@@ -400,17 +421,25 @@ def main() -> None:
 
     if not args.kml.is_file():
         parser.error(f"KML file not found: {args.kml}")
-    if args.image_dir:
-        custom_dir = args.image_dir.resolve()
-        default_image_set = custom_dir.name
-        image_sets = {default_image_set: ordered_images(custom_dir)}
-    else:
-        required_sets = sorted({profile["image_set"] for profile in MODEL_IMAGE_PROFILES.values()})
-        image_sets = {
-            name: ordered_images(IMAGE_LIBRARY_DIR / name)
-            for name in required_sets
-        }
-        default_image_set = DEFAULT_IMAGE_SET
+    required_sets = sorted({profile["image_set"] for profile in MODEL_IMAGE_PROFILES.values()})
+    image_sets = {
+        name: ordered_images(IMAGE_LIBRARY_DIR / name)
+        for name in required_sets
+    }
+    default_image_set = DEFAULT_IMAGE_SET
+    for model_hash, profile in MODEL_IMAGE_PROFILES.items():
+        model_path = MODEL_LIBRARY_DIR / profile["file"]
+        if not model_path.is_file():
+            parser.error(f"bundled model not found: {model_path}")
+        actual_hash = sha256_file(model_path)
+        if actual_hash != model_hash:
+            parser.error(
+                f"bundled model hash mismatch for {profile['file']}: "
+                f"expected {model_hash}, observed {actual_hash}"
+            )
+        cache_path = CACHE_LIBRARY_DIR / profile["cache"]
+        if not cache_path.is_file():
+            parser.error(f"bundled prediction cache not found: {cache_path}")
     assert HTML_TEMPLATE.is_file(), f"missing template: {HTML_TEMPLATE}"
     for destination in (args.export_csv, args.export_preview, args.export_html):
         assert destination is None or not destination.exists(), f"refusing to overwrite: {destination}"
