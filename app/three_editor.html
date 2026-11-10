@@ -20,6 +20,7 @@
   .buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}button{border:1px solid var(--rule-strong);background:#f0ede6;color:var(--ink);border-radius:3px;padding:8px;cursor:pointer;box-shadow:0 1px 0 #fff inset}button:hover{background:#e7e3da;border-color:#9f9b92}button.primary{background:var(--academic);border-color:var(--academic-deep);color:#fff;box-shadow:none}button.primary:hover{background:var(--academic-deep)}
   .hint{font-size:10.5px;line-height:1.58;color:var(--muted);margin:7px 0}.status{position:absolute;left:14px;bottom:102px;max-width:min(720px,75%);padding:8px 11px;border:1px solid #c9c5bb;border-radius:3px;background:#fffdfae8;color:var(--ink-soft);font-size:11px;box-shadow:0 4px 14px #625b4c1a;pointer-events:none}
   .report{margin-top:8px;padding:8px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb;color:var(--ink-soft);font-size:10.5px;line-height:1.58}.report strong{color:var(--ink)}.report.warn{border-color:#c9a47d;background:#f7efe4;color:var(--warn)}
+  details.settings-panel{margin-top:16px;border:1px solid var(--rule-strong);border-radius:4px;background:#f5f2eb}details.settings-panel>summary{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;color:var(--academic-deep);font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer;user-select:none;list-style:none}details.settings-panel>summary::-webkit-details-marker{display:none}details.settings-panel>summary:after{content:'展开';color:var(--muted);font-size:9.5px;font-weight:400;letter-spacing:0}details.settings-panel[open]>summary{border-bottom:1px solid var(--rule)}details.settings-panel[open]>summary:after{content:'收起'}.settings-body{padding:1px 11px 12px}.settings-body h3:first-child{margin-top:13px}
   details.advanced{margin-top:10px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb}details.advanced summary{padding:9px 10px;color:var(--ink-soft);font-size:11px;cursor:pointer;user-select:none}details.advanced[open] summary{border-bottom:1px solid var(--rule)}.advanced-body{padding:2px 10px 10px}
   .pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.pair-card{padding:6px;border:1px solid var(--rule);border-radius:3px;background:var(--surface-strong)}.pair-card img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:1px;margin-bottom:6px;background:#e6e2d9}.pair-card label{display:block}.pair-card select{margin-top:4px}.lamp-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--ink-soft)}.lamp-legend span:before{content:'';display:inline-block;width:11px;height:9px;margin-right:4px;background:var(--c);clip-path:polygon(0 50%,100% 0,100% 100%)}
   .model-picker{display:grid;gap:7px}.model-card{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center;width:100%;padding:6px;text-align:left;background:var(--surface-strong)}.model-card img{display:block;width:86px;height:62px;object-fit:cover;border-radius:2px;background:#e6e2d9}.model-card strong,.model-card small{display:block}.model-card strong{font-size:11.5px;font-weight:600;color:var(--ink)}.model-card small{margin-top:4px;font-size:9.5px;color:var(--muted)}.model-card.selected{border-color:var(--academic);background:#edf1f2;box-shadow:0 0 0 1px var(--academic) inset}.model-card:disabled{cursor:wait;opacity:.72}
@@ -33,63 +34,63 @@
 <header><h1>VGGT 建筑与相机轨迹编辑器</h1><div id="summary"></div></header>
 <div class="layout">
 <aside>
-  <h2>三维数据</h2>
+  <h2>选择建筑模型</h2>
   <div id="modelPicker" class="model-picker" aria-label="内置建筑模型"></div>
-  <div class="hint">模型、实拍照片和预测缓存均已随程序打包；切换模型后自动加载对应资源。</div>
+  <div class="hint">切换模型会自动加载对应的实拍照片与预测缓存。</div>
 
-  <h3>VGGT 视觉估计轨迹</h3>
-  <div class="hint">按 GLB 中的照片输入顺序提取相机光心，并用向心 Catmull–Rom 样条穿过全部光心。曲线不再使用 KML。</div>
-  <div id="trajectoryReport" class="report">加载 GLB 后生成相机轨迹。</div>
-
-  <h3>LaMP 两图相对定位</h3>
-  <div class="hint">选择模型后自动切换对应实拍图和预测缓存；不会回退到其他建筑的远程服务。</div>
-  <div id="cacheReport" class="hint">等待模型；识别后将自动加载对应图片和缓存。</div>
-  <div class="hint">预测位置使用带方向的 range 序列步差，映射到拟合飞行轨迹上的连续位置。</div>
+  <h3>选择起点与终点</h3>
   <div class="pair-grid">
     <div class="pair-card"><img id="lampImageA" alt="起始图"><label>起始图<select id="lampFrameA"></select></label></div>
     <div class="pair-card"><img id="lampImageB" alt="目标图"><label>目标图<select id="lampFrameB"></select></label></div>
   </div>
   <button id="runLamp" class="primary" style="width:100%;margin-top:8px">预测目标位置</button>
-  <div class="lamp-legend"><span style="--c:var(--source)">起始视锥</span><span style="--c:var(--prediction)">预测视锥</span><span style="--c:var(--target)">实际终止视锥</span></div>
-  <div id="lampReport" class="report">选择模型后将自动加载对应预测缓存。</div>
+  <div class="hint">也可直接在画面底部的长条上依次点击起点和终点。</div>
 
-  <h3>自动扶正与贴地</h3>
-  <button id="autoGround" class="primary" style="width:100%">重新自动贴地</button>
-  <div id="groundReport" class="report">加载模型后自动检测建筑底面。</div>
+  <details class="settings-panel">
+    <summary>设置</summary>
+    <div class="settings-body">
+      <h3>预测与轨迹信息</h3>
+      <div class="lamp-legend"><span style="--c:var(--source)">起始视锥</span><span style="--c:var(--prediction)">预测视锥</span><span style="--c:var(--target)">实际终止视锥</span></div>
+      <div id="lampReport" class="report">选择模型后将自动加载对应预测缓存。</div>
+      <div id="cacheReport" class="hint">等待模型；识别后将自动加载对应图片和缓存。</div>
+      <div id="trajectoryReport" class="report">加载 GLB 后生成相机轨迹。</div>
 
-  <h3>模型方位与尺寸</h3>
-  <div id="modelControls"></div>
-  <details class="advanced">
-    <summary>高级校准（自动贴地失败时使用）</summary>
-    <div class="advanced-body">
-      <div id="advancedControls"></div>
-      <div class="checks"><label><input id="showBasePlane" type="checkbox">显示检测底面</label></div>
-      <div class="buttons"><button id="flipGround">上下翻转</button><button id="resetAlignment">重置场景姿态</button></div>
-      <div class="buttons"><button id="saveAlignment" class="primary">保存当前姿态</button><button id="restoreAlignment">加载已保存</button></div>
+      <h3>自动扶正与贴地</h3>
+      <button id="autoGround" class="primary" style="width:100%">重新自动贴地</button>
+      <div id="groundReport" class="report">加载模型后自动检测建筑底面。</div>
+
+      <h3>模型方位与尺寸</h3>
+      <div id="modelControls"></div>
+      <details class="advanced">
+        <summary>高级校准（自动贴地失败时使用）</summary>
+        <div class="advanced-body">
+          <div id="advancedControls"></div>
+          <div class="checks"><label><input id="showBasePlane" type="checkbox">显示检测底面</label></div>
+          <div class="buttons"><button id="flipGround">上下翻转</button><button id="resetAlignment">重置场景姿态</button></div>
+          <div class="buttons"><button id="saveAlignment" class="primary">保存当前姿态</button><button id="restoreAlignment">加载已保存</button></div>
+        </div>
+      </details>
+
+      <h3>显示与视角</h3>
+      <label>背景<select id="background"><option value="#f3f0e8" selected>暖白（学术）</option><option value="#0b1220">原深色</option><option value="#000000">黑</option><option value="#ffffff">纯白</option></select></label>
+      <label>显示点数<select id="pointBudget"><option value="100000">10 万</option><option value="250000">25 万</option><option value="500000">50 万</option><option value="1000000" selected>100 万（默认）</option><option value="2000000">200 万</option><option value="3000000">300 万</option></select></label>
+      <div id="displayControls"></div>
+      <div class="checks">
+        <label><input id="showGrid" type="checkbox">网格 / 参考平面</label>
+        <label><input id="showAxes" type="checkbox">坐标轴</label>
+        <label><input id="showCameras" type="checkbox" checked>VGGT 相机</label>
+        <label><input id="showCurve" type="checkbox" checked>环绕轨迹</label>
+      </div>
+      <div class="checks">
+        <label><input id="roundSplats" type="checkbox" checked>圆形 splat</label>
+        <label><input id="useEDL" type="checkbox" checked>EDL 深度增强</label>
+        <label><input id="showPoints" type="checkbox" checked>点云图层</label>
+        <label><input id="showMesh" type="checkbox" checked>网格模型图层</label>
+      </div>
+      <div class="buttons"><button id="fitView" class="primary">适配视角</button><button id="resetView">重置视角</button></div>
+      <div class="hint">左键拖动旋转；右键拖动平移；滚轮缩放；单击轨迹生成该位置的模拟航拍视角。</div>
     </div>
   </details>
-
-  <h3>轨迹样式</h3>
-  <div class="hint">期刊蓝灰轨迹 · 沿飞行方向由深至浅并逐渐收细</div>
-
-  <h3>显示</h3>
-  <label>背景<select id="background"><option value="#f3f0e8" selected>暖白（学术）</option><option value="#0b1220">原深色</option><option value="#000000">黑</option><option value="#ffffff">纯白</option></select></label>
-  <label>显示点数<select id="pointBudget"><option value="100000">10 万</option><option value="250000">25 万</option><option value="500000">50 万</option><option value="1000000" selected>100 万（默认）</option><option value="2000000">200 万</option><option value="3000000">300 万</option></select></label>
-  <div id="displayControls"></div>
-  <div class="checks">
-    <label><input id="showGrid" type="checkbox">网格 / 参考平面</label>
-    <label><input id="showAxes" type="checkbox">坐标轴</label>
-    <label><input id="showCameras" type="checkbox" checked>VGGT 相机</label>
-    <label><input id="showCurve" type="checkbox" checked>环绕轨迹</label>
-  </div>
-  <div class="checks">
-    <label><input id="roundSplats" type="checkbox" checked>圆形 splat</label>
-    <label><input id="useEDL" type="checkbox" checked>EDL 深度增强</label>
-    <label><input id="showPoints" type="checkbox" checked>点云图层</label>
-    <label><input id="showMesh" type="checkbox" checked>网格模型图层</label>
-  </div>
-  <div class="buttons"><button id="fitView" class="primary">适配视角</button><button id="resetView">重置视角</button></div>
-  <div class="hint">左键拖动旋转；右键拖动平移；滚轮缩放；单击轨迹生成该位置的模拟航拍视角。贴地使用点云低分位数抑制漂浮噪点。</div>
 </aside>
 <main>
   <div id="viewer" class="viewer"></div>
