@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>VGGT 建筑与相机轨迹编辑器</title>
 <style>
   :root{font-family:"IBM Plex Sans","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color-scheme:light;--paper:#f3f0e8;--surface:#faf8f3;--surface-strong:#fffdfa;--ink:#242a30;--ink-soft:#5f6870;--muted:#70787e;--rule:#d3cfc5;--rule-strong:#b9b5ac;--academic:#46677d;--academic-deep:#365568;--source:#315f8c;--target:#647d68;--prediction:#b27a32;--warn:#925d32}
@@ -12,7 +12,7 @@
   h1{font-family:Georgia,"Noto Serif SC","Songti SC",serif;font-size:19px;font-weight:600;letter-spacing:.015em;margin:0}#summary{font-size:11px;color:var(--ink-soft);text-align:right}
   .layout{height:calc(100vh - 62px);display:grid;grid-template-columns:340px minmax(0,1fr)}
   aside{padding:16px 17px;overflow:auto;background:var(--surface);border-right:1px solid var(--rule-strong);scrollbar-color:#bdb8ae transparent}
-  main{position:relative;min-width:0}.viewer{position:absolute;inset:0;background:var(--paper)}
+  main{position:relative;min-width:0;min-height:0}.viewer{position:absolute;inset:0;background:var(--paper);touch-action:none;overscroll-behavior:none}.viewer>canvas{display:block;width:100%!important;height:100%!important}
   h2{font-family:Georgia,"Noto Serif SC","Songti SC",serif;font-size:15px;font-weight:600;margin:3px 0 11px;color:var(--ink)}h3{font-size:11px;margin:20px 0 8px;color:var(--academic-deep);text-transform:uppercase;letter-spacing:.13em;border-bottom:1px solid var(--rule);padding-bottom:5px}
   label{font-size:11px;color:var(--ink-soft)}select,input[type=number]{width:100%;border:1px solid var(--rule-strong);background:var(--surface-strong);color:var(--ink);border-radius:3px;padding:7px;box-shadow:0 1px 0 #ffffff inset}
   input[type=checkbox]{accent-color:var(--academic)}.control{margin:9px 0}.control-head{display:grid;grid-template-columns:1fr 82px;gap:8px;align-items:center}.control input[type=range]{width:100%;accent-color:var(--academic)}
@@ -26,8 +26,26 @@
   .model-picker{display:grid;gap:7px}.model-card{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center;width:100%;padding:6px;text-align:left;background:var(--surface-strong)}.model-card img{display:block;width:86px;height:62px;object-fit:cover;border-radius:2px;background:#e6e2d9}.model-card strong,.model-card small{display:block}.model-card strong{font-size:11.5px;font-weight:600;color:var(--ink)}.model-card small{margin-top:4px;font-size:9.5px;color:var(--muted)}.model-card.selected{border-color:var(--academic);background:#edf1f2;box-shadow:0 0 0 1px var(--academic) inset}.model-card:disabled{cursor:wait;opacity:.72}
   .help{position:absolute;right:14px;top:14px;padding:6px 9px;border:1px solid #d2cec5;border-radius:3px;background:#fffdfad9;color:var(--muted);font-size:10px;pointer-events:none}
   .camera-preview{display:none;position:absolute;right:14px;top:52px;width:min(440px,calc(100% - 28px));background:#fffdfaf2;border:1px solid var(--rule-strong);border-radius:4px;overflow:hidden;box-shadow:0 12px 30px #554d3c26;z-index:4}.preview-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--rule);font-family:Georgia,"Noto Serif SC",serif;font-size:12px;color:var(--ink)}.preview-head button{padding:3px 8px}.preview-canvas{height:300px;background:var(--paper)}.preview-canvas canvas{display:block;width:100%;height:100%}.preview-tools{display:flex;justify-content:flex-end;padding:8px}.preview-meta{padding:0 10px 9px;color:var(--muted);font-size:10.5px}
-  .timeline-picker{position:absolute;left:18px;right:18px;bottom:14px;z-index:5;padding:9px 14px 10px;border:1px solid var(--rule-strong);border-radius:4px;background:#fffdfaec;box-shadow:0 8px 24px #554d3c24;backdrop-filter:blur(8px);user-select:none}.timeline-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--ink-soft);font-size:10.5px}.timeline-head span:last-child{color:var(--muted);white-space:nowrap}.timeline-track{position:relative;height:12px;margin:22px 8px 5px;border:1px solid #aaa69d;border-radius:2px;background:#e4e0d7;cursor:crosshair}.timeline-ticks{position:absolute;inset:0;pointer-events:none}.timeline-tick{position:absolute;top:3px;width:1px;height:5px;background:#8f8b8355}.timeline-tick.major{top:1px;height:9px;background:#6f6b6488}.timeline-marker{position:absolute;top:50%;width:15px;height:15px;transform:translate(-50%,-50%);border:2px solid #fffdfa;border-radius:50%;background:var(--marker);box-shadow:0 0 0 1px #56514a55;z-index:3;pointer-events:none}.timeline-marker.prediction{width:12px;height:12px;z-index:4}.timeline-marker span{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:2px 5px;border:1px solid var(--rule);border-radius:2px;background:#fffdfa;color:var(--marker);font-size:9.5px;white-space:nowrap}.timeline-hover{display:none;position:absolute;bottom:25px;width:92px;transform:translateX(-50%);padding:5px;border:1px solid var(--rule-strong);border-radius:3px;background:#fffdfa;box-shadow:0 5px 14px #554d3c24;pointer-events:none;z-index:6}.timeline-hover img{display:block;width:80px;height:58px;object-fit:cover;border-radius:1px}.timeline-hover span{display:block;margin-top:3px;text-align:center;color:var(--ink-soft);font-size:9.5px}
-  @media(max-width:820px){body{overflow:auto}.layout{height:auto;grid-template-columns:1fr}.viewer{position:relative;height:70vh}aside{border-right:0}.help{display:none}.camera-preview{top:10px}.preview-canvas{height:230px}.timeline-picker{left:8px;right:8px}.timeline-head span:last-child{display:none}.status{bottom:104px}}
+  .timeline-picker{position:absolute;left:18px;right:18px;bottom:14px;z-index:5;padding:9px 14px 10px;border:1px solid var(--rule-strong);border-radius:4px;background:#fffdfaec;box-shadow:0 8px 24px #554d3c24;backdrop-filter:blur(8px);user-select:none}.timeline-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--ink-soft);font-size:10.5px}.timeline-head span:last-child{color:var(--muted);white-space:nowrap}.timeline-track{position:relative;height:12px;margin:22px 8px 5px;border:1px solid #aaa69d;border-radius:2px;background:#e4e0d7;cursor:crosshair;touch-action:manipulation}.timeline-ticks{position:absolute;inset:0;pointer-events:none}.timeline-tick{position:absolute;top:3px;width:1px;height:5px;background:#8f8b8355}.timeline-tick.major{top:1px;height:9px;background:#6f6b6488}.timeline-marker{position:absolute;top:50%;width:15px;height:15px;transform:translate(-50%,-50%);border:2px solid #fffdfa;border-radius:50%;background:var(--marker);box-shadow:0 0 0 1px #56514a55;z-index:3;pointer-events:none}.timeline-marker.prediction{width:12px;height:12px;z-index:4}.timeline-marker span{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:2px 5px;border:1px solid var(--rule);border-radius:2px;background:#fffdfa;color:var(--marker);font-size:9.5px;white-space:nowrap}.timeline-hover{display:none;position:absolute;bottom:25px;width:92px;transform:translateX(-50%);padding:5px;border:1px solid var(--rule-strong);border-radius:3px;background:#fffdfa;box-shadow:0 5px 14px #554d3c24;pointer-events:none;z-index:6}.timeline-hover img{display:block;width:80px;height:58px;object-fit:cover;border-radius:1px}.timeline-hover span{display:block;margin-top:3px;text-align:center;color:var(--ink-soft);font-size:9.5px}
+  @media(max-width:900px){
+    header{height:50px;padding:0 12px}h1{font-size:16px}#summary{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
+    .layout{height:calc(100dvh - 50px);grid-template-columns:280px minmax(0,1fr)}
+    aside{padding:10px 10px 12px}h2{font-size:13px;margin:1px 0 7px}h3{margin:11px 0 6px;font-size:10px}
+    .model-picker{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.model-card{display:block;min-width:0;padding:4px;text-align:center}.model-card img{width:100%;height:48px}.model-card strong{margin-top:3px;font-size:9.5px;overflow:hidden;text-overflow:ellipsis}.model-card small{display:none}
+    .pair-grid{gap:5px}.pair-card{display:grid;grid-template-columns:58px minmax(0,1fr);gap:5px;align-items:center;padding:4px}.pair-card img{width:58px;height:58px;aspect-ratio:auto;margin:0}.pair-card select{margin-top:3px;padding:6px 4px;font-size:10px}.pair-card label{min-width:0;font-size:10px}
+    aside>.hint{display:none}#runLamp{min-height:36px}details.settings-panel{margin-top:8px}details.settings-panel>summary{min-height:38px;padding:8px 10px}
+    .help{display:none}.camera-preview{left:8px;right:8px;top:8px;width:auto;max-height:calc(100% - 94px);overflow:auto}.preview-canvas{height:210px}.preview-head,.preview-tools{padding:7px 8px}
+    .timeline-picker{left:8px;right:8px;bottom:calc(7px + env(safe-area-inset-bottom));padding:7px 9px 8px}.timeline-head{font-size:9.5px}.timeline-head span:last-child{display:none}.timeline-track{height:22px;margin:18px 4px 1px}.timeline-tick{top:7px;height:6px}.timeline-tick.major{top:4px;height:12px}.timeline-marker{width:20px;height:20px}.timeline-marker.prediction{width:17px;height:17px}.timeline-marker span{bottom:22px;font-size:8.5px}
+    .status{left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:none;padding:6px 8px;font-size:9.5px}
+    button,select,input{min-height:34px}
+  }
+  @media(max-width:640px) and (orientation:portrait){
+    header{height:calc(50px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}#summary{display:none}
+    .layout{height:calc(100dvh - 50px - env(safe-area-inset-top));display:flex;flex-direction:column}
+    aside{flex:0 0 auto;max-height:42dvh;overflow-y:auto;border-right:0;border-bottom:1px solid var(--rule-strong)}main{flex:1 1 auto;min-height:250px}
+  }
+  @media(max-width:390px) and (orientation:portrait){.pair-card{grid-template-columns:50px minmax(0,1fr)}.pair-card img{width:50px;height:54px}.model-card img{height:42px}.model-card strong{font-size:9px}}
+  @media(hover:none){.timeline-hover{display:none!important}}
 </style>
 </head>
 <body>
@@ -88,7 +106,7 @@
         <label><input id="showMesh" type="checkbox" checked>网格模型图层</label>
       </div>
       <div class="buttons"><button id="fitView" class="primary">适配视角</button><button id="resetView">重置视角</button></div>
-      <div class="hint">左键拖动旋转；右键拖动平移；滚轮缩放；单击轨迹生成该位置的模拟航拍视角。</div>
+      <div class="hint">拖动旋转；右键或双指拖动平移；滚轮或双指开合缩放；单击轨迹生成该位置的模拟航拍视角。</div>
     </div>
   </details>
 </aside>
@@ -147,6 +165,7 @@ let renderer,scene,camera,grid,axes,modelRoot,autoAlignGroup,modelContent,curveG
 let rawCameraCenters=[],trajectoryCameraCenters=[],trajectoryOutlierIndices=[],rawCameraFrames=[],cameraMeshes=[],curveSamples=[],modelPointSample=[],cameraCentersInModel=[],detectedBasePlane=null,trajectoryAlignment=null,trajectoryTargetCenter=null,trajectoryUp=null;
 let lampSnapTargets=[];
 let yaw=.65,pitch=.38,distance=8,target=new THREE.Vector3(0,1,0),dragMode='',last=[0,0],renderPending=false,pointerTravel=0,selectedCurveT=null;
+const activePointers=new Map();let pinchDistance=0,pinchCenter=[0,0];
 
 function init(){
   scene=new THREE.Scene();scene.background=new THREE.Color($('background').value);
@@ -518,8 +537,15 @@ $('autoGround').addEventListener('click',()=>autoOrientAndGround(true));$('flipG
 $('closePreview').addEventListener('click',closeTrajectoryPreview);$('downloadPreview').addEventListener('click',downloadTrajectoryPreview);
 $('saveAlignment').addEventListener('click',saveAlignment);$('restoreAlignment').addEventListener('click',()=>restoreAlignment(true));$('resetAlignment').addEventListener('click',()=>{setValues(RECOMMENDED);setStatus('已恢复推荐场景姿态');});$('fitView').addEventListener('click',fitView);$('resetView').addEventListener('click',fitView);
 $('timelineTrack').addEventListener('pointermove',updateTimelineHover);$('timelineTrack').addEventListener('pointerleave',()=>{$('timelineHover').style.display='none';});$('timelineTrack').addEventListener('click',e=>chooseTimelineFrame(timelineIndexFromEvent(e)));
-viewer.addEventListener('contextmenu',e=>e.preventDefault());viewer.addEventListener('pointerdown',e=>{dragMode=e.button===2?'pan':'orbit';last=[e.clientX,e.clientY];pointerTravel=0;viewer.setPointerCapture(e.pointerId);});viewer.addEventListener('pointermove',e=>{if(!dragMode)return;const dx=e.clientX-last[0],dy=e.clientY-last[1];pointerTravel+=Math.hypot(dx,dy);last=[e.clientX,e.clientY];if(dragMode==='orbit'){yaw+=dx*.009;pitch=Math.max(-1.45,Math.min(1.45,pitch+dy*.009));}else{const right=new THREE.Vector3();camera.getWorldDirection(right);right.cross(camera.up).normalize();const up=camera.up.clone();target.addScaledVector(right,-dx*distance*.0015).addScaledVector(up,dy*distance*.0015);}requestRender();});viewer.addEventListener('pointerup',()=>dragMode='');viewer.addEventListener('pointercancel',()=>dragMode='');viewer.addEventListener('click',e=>{if(pointerTravel<4&&!handleLampSnap(e))handleCurvePick(e);});viewer.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(1,Math.min(80,distance*Math.exp(e.deltaY*.001)));requestRender();},{passive:false});viewer.addEventListener('dblclick',fitView);
-new ResizeObserver(resize).observe(viewer);init();
+function panView(dx,dy){const right=new THREE.Vector3();camera.getWorldDirection(right);right.cross(camera.up).normalize();target.addScaledVector(right,-dx*distance*.0015).addScaledVector(camera.up,dy*distance*.0015);}
+function updatePinchReference(){const points=[...activePointers.values()];if(points.length<2)return;pinchDistance=Math.max(1,Math.hypot(points[1][0]-points[0][0],points[1][1]-points[0][1]));pinchCenter=[(points[0][0]+points[1][0])*.5,(points[0][1]+points[1][1])*.5];}
+function releasePointer(event){activePointers.delete(event.pointerId);if(activePointers.size===1){const point=[...activePointers.values()][0];last=point.slice();dragMode='orbit';}else if(activePointers.size<1)dragMode='';else updatePinchReference();}
+viewer.addEventListener('contextmenu',e=>e.preventDefault());
+viewer.addEventListener('pointerdown',event=>{activePointers.set(event.pointerId,[event.clientX,event.clientY]);viewer.setPointerCapture(event.pointerId);if(activePointers.size===1){dragMode=event.button===2?'pan':'orbit';last=[event.clientX,event.clientY];pointerTravel=0;}else{dragMode='pinch';updatePinchReference();}});
+viewer.addEventListener('pointermove',event=>{if(!activePointers.has(event.pointerId))return;activePointers.set(event.pointerId,[event.clientX,event.clientY]);if(activePointers.size>=2){const points=[...activePointers.values()],nextDistance=Math.max(1,Math.hypot(points[1][0]-points[0][0],points[1][1]-points[0][1])),nextCenter=[(points[0][0]+points[1][0])*.5,(points[0][1]+points[1][1])*.5],dx=nextCenter[0]-pinchCenter[0],dy=nextCenter[1]-pinchCenter[1];pointerTravel+=Math.abs(nextDistance-pinchDistance)+Math.hypot(dx,dy);distance=Math.max(1,Math.min(80,distance*pinchDistance/nextDistance));panView(dx,dy);pinchDistance=nextDistance;pinchCenter=nextCenter;requestRender();return;}if(!dragMode)return;const dx=event.clientX-last[0],dy=event.clientY-last[1];pointerTravel+=Math.hypot(dx,dy);last=[event.clientX,event.clientY];if(dragMode==='orbit'){yaw+=dx*.009;pitch=Math.max(-1.45,Math.min(1.45,pitch+dy*.009));}else panView(dx,dy);requestRender();});
+viewer.addEventListener('pointerup',releasePointer);viewer.addEventListener('pointercancel',releasePointer);
+viewer.addEventListener('click',e=>{if(pointerTravel<4&&!handleLampSnap(e))handleCurvePick(e);});viewer.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(1,Math.min(80,distance*Math.exp(e.deltaY*.001)));requestRender();},{passive:false});viewer.addEventListener('dblclick',fitView);
+new ResizeObserver(resize).observe(viewer);window.addEventListener('resize',resize);window.visualViewport?.addEventListener('resize',resize);init();
 </script>
 </body>
 </html>
