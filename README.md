@@ -10,6 +10,8 @@ python app/kml_spiral_editor.py --no-browser
 
 打开 <http://127.0.0.1:7872/> 后，程序自动加载默认的 `building_1565` 模型。侧栏以真实航拍缩略图展示三个已打包的 50 图模型：`building_1565`、`building_0839` 和 `building_1374`。点击卡片会同步切换 GLB、照片和预测缓存，不需要也不会打开文件管理器。
 
+页面右上角提供 `EN / 中文` 切换按钮；静态界面、运行状态、预测结果和错误提示都会随语言切换，所选语言及当前建筑模型保存在浏览器中。
+
 GLB 中顶点数 5–100 的 Mesh 按输入顺序视为相机，0-based 顶点 1 是光心；大于 100 顶点的 Mesh 是模型。场景模型和相机共享同一变换。自动贴地可手动调整或保存；此浏览器显示变换不修改 GLB。
 
 ## 显示与 PNG
@@ -31,9 +33,11 @@ Three.js 及 GLTFLoader/BufferGeometryUtils 沿用仓库随附 r160（0.160.0，
 
 ## 离线预测缓存
 
-选择内置模型后，页面同时切换对应实拍图，并从 `prediction_caches/` 自动加载该模型的缓存 JSON。缓存键 `0->27` 表示图片数组中的第 0、27 项，与文件名数字不必相同。模型只使用自己的缓存：缓存文件缺失或图片对未命中时明确提示，不会回退到另一建筑的远程服务。预测完成后自动打开预测视角的点云预览。
+选择内置模型后，页面同时切换对应实拍图，并从 `prediction_caches/` 自动加载该模型的缓存 JSON。缓存键 `0->27` 表示图片数组中的第 0、27 项，与文件名数字不必相同。设置中的“预测模型”可切换 LaMP 与 PACE Final；两种缓存相互独立，缓存缺失或图片对未命中时明确提示，不会用另一模型或另一建筑的数据代替。预测完成后自动打开预测视角的点云预览。
 
 缓存文件名与模型映射记录在 `MODEL_IMAGE_PROFILES`，当前使用 `building_1565_images_01_50.lamp_cache.json`、`building_0839_images_01_50.lamp_cache.json` 和 `building_1374_images_01_50.lamp_cache.json`。
+
+PACE 缓存使用 V2 通用格式，文件名分别以 `.pace_cache.json` 结尾。每对保存最终 `heading_deg`、`range_m`，并在 `raw` 中保留 PAAER、MDHR、MARB 三个子模型及融合前距离；不会伪造 LaMP 特有的 `decoded.label_index`。PACE 文件未安装时应用仍能正常启动并继续使用 LaMP。
 
 预测点只使用 `range` 序列步差：连续步差 = −2×range，按拍摄步号映射到拟合轨迹上的连续位置，超出范围时夹到端点并提示。这里的 range 是训练标签中的带方向序列位移，不应解释为通用欧氏米制距离。现有三组 50 图缓存对目标帧的中位误差约为 0.09–0.10 帧；MAP-hard 仅供参考，不参与放置。
 
@@ -52,6 +56,30 @@ python remote_tools/precompute_lamp_pairs.py \
 ```
 
 新目录内生成 `lamp_cache.json` 和 `progress.jsonl`。现有输出目录一律拒绝，失败后保留进度供诊断；另选新目录重跑，不自动续算或覆盖。支持 `--pairs all`（全部有序非自身对）、`--pairs ring0`（0→k）、`--pairs stride N`（i→i+N，不回绕）。50 张图片的 all 恰为 2450 对。模型和三个任务头各加载一次。
+
+### PACE Final 缓存
+
+先克隆 [PairUAV-PACE](https://github.com/zerong7777-boop/PairUAV-PACE)，再按其 `assets/RELEASE_ASSETS.md` 下载外部资源。必须存在三个官方 checkpoint：
+
+- `phase104j_paaer_hr_final/checkpoint-final.pth`
+- `phase89_h8_midlate_final/checkpoint-final.pth`
+- `phase45_epoch2_resume_final/checkpoint-final.pth`
+
+在 PACE 的 Python 环境中运行：
+
+```bash
+python remote_tools/precompute_pace_pairs.py \
+  --image-dir /path/to/building_1565_images_01_50 \
+  --pace-root /path/to/PairUAV-PACE \
+  --asset-root /path/to/PairUAV-PACE/assets \
+  --expected-images 50 --pairs all \
+  --batch-size 1 --num-workers 2 \
+  --output-dir /path/to/new/pace_1565_run
+```
+
+脚本按官方流程顺序运行 PAAER、MDHR、MARB，应用 `0.511 / 0.189 / 0.300` 距离融合、2° 航向格点和训练/验证距离支撑集校准，生成 `pace_cache.json`。三个模型不会同时驻留显存；8 GB GPU 建议保持 `--batch-size 1`。将结果复制为 `prediction_caches/building_1565_images_01_50.pace_cache.json`，其余建筑按相同规则命名。页面刷新后即可在设置中选择 PACE Final。
+
+三个固定建筑可用 `PACE_ROOT=/path/to/PairUAV-PACE bash remote_tools/precompute_fixed_model_pace_caches.sh` 顺序生成，输出默认位于 `~/work/lamp_setup/generated_pace_caches/`。
 
 缓存包含图像顺序与 SHA256、bundle 路径、VGGT 权重 SHA256、时间、每对 heading/yaw/rotation/range、decoded 与耗时。`yaw_deg` 与原 heading 定义相同：`atan2(R[1,0], R[0,0])`；`rotation_angle_deg=degrees(acos(clip((trace(R)-1)/2,-1,1)))`。`decoded.label_index` 是 decoder 网格的 0-based 索引，不是目标帧。所有 JSON 用 `allow_nan=False` 写出。
 

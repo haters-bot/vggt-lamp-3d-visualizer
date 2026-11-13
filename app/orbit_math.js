@@ -1,5 +1,6 @@
 export function validateCache(cache) {
   if(!cache||!Array.isArray(cache.images)||cache.images.length<2)throw new Error('缓存 images 必须含至少两张图片');
+  if(cache.schema_version!==1&&cache.schema_version!==2)throw new Error(`不支持的缓存版本：${cache.schema_version}`);
   if(new Set(cache.images).size!==cache.images.length||cache.images.some(x=>typeof x!=='string'||!x||/[\\/]/.test(x)))throw new Error('缓存图片名重复或含路径');
   if(cache.index_base!==undefined&&cache.index_base!==0)throw new Error('缓存必须使用从 0 开始的输入序号');
   if(!cache.pairs||typeof cache.pairs!=='object'||Array.isArray(cache.pairs))throw new Error('缓存缺少 pairs 对象');
@@ -8,10 +9,11 @@ export function validateCache(cache) {
     if(!/^(0|[1-9]\d*)->(0|[1-9]\d*)$/.test(key))throw new Error(`无效 pair 键：${key}`);
     const [a,b]=key.split('->').map(Number);
     if(a===b||a>=cache.images.length||b>=cache.images.length)throw new Error(`pair 超出图片范围或为自身：${key}`);
-    for(const name of ['range_m','seconds'])if(!Number.isFinite(value?.[name]))throw new Error(`${key}.${name} 必须是有限数值`);
-    if(value.seconds<0)throw new Error(`无效推理耗时：${key}`);
-    if(!value.decoded||!Number.isFinite(value.decoded.heading_deg)||!Number.isFinite(value.decoded.range_m)||!Number.isInteger(value.decoded.label_index)||value.decoded.label_index<0)throw new Error(`无效 decoded：${key}`);
+    for(const name of ['heading_deg','range_m'])if(!Number.isFinite(value?.[name]))throw new Error(`${key}.${name} 必须是有限数值`);
+    if(value.seconds!==undefined&&(!Number.isFinite(value.seconds)||value.seconds<0))throw new Error(`无效推理耗时：${key}`);
+    if(cache.schema_version===1&&(!value.decoded||!Number.isFinite(value.decoded.heading_deg)||!Number.isFinite(value.decoded.range_m)||!Number.isInteger(value.decoded.label_index)||value.decoded.label_index<0))throw new Error(`无效 decoded：${key}`);
   }
+  if(cache.schema_version===2&&(!cache.model||typeof cache.model.id!=='string'||!cache.model.id))throw new Error('V2 缓存缺少 model.id');
   return cache;
 }
 

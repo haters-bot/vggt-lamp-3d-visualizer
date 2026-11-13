@@ -35,6 +35,11 @@ DEFAULT_IMAGE_SET = "building_1565_images_01_50"
 UAV_IMAGE_DIR = IMAGE_LIBRARY_DIR / DEFAULT_IMAGE_SET
 DEFAULT_MODEL_HASH = "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977"
 
+PREDICTION_PROVIDERS = {
+    "lamp": {"label": "LaMP", "remote_fallback": True},
+    "pace_final": {"label": "PACE Final", "remote_fallback": False},
+}
+
 # Bind every verified bundled GLB to its source images and prediction cache.
 MODEL_IMAGE_PROFILES = {
     "c791c9af4560031835f918342669ae4d04a2314db597cfc8b5c3a184a487c977": {
@@ -43,6 +48,10 @@ MODEL_IMAGE_PROFILES = {
         "label": "building_1565",
         "file": "building_1565_50views.glb",
         "cache": "building_1565_images_01_50.lamp_cache.json",
+        "caches": {
+            "lamp": "building_1565_images_01_50.lamp_cache.json",
+            "pace_final": "building_1565_images_01_50.pace_cache.json",
+        },
     },
     "58edb309a106a139690594b562d346d169209c4c920ad1730b45d40f7ad30269": {
         "image_set": "building_0839_images_01_50",
@@ -50,6 +59,10 @@ MODEL_IMAGE_PROFILES = {
         "label": "building_0839",
         "file": "building_0839_50views.glb",
         "cache": "building_0839_images_01_50.lamp_cache.json",
+        "caches": {
+            "lamp": "building_0839_images_01_50.lamp_cache.json",
+            "pace_final": "building_0839_images_01_50.pace_cache.json",
+        },
     },
     "463f6de2988c384399a2c379f6d6bd8addb4fa510627b1268eae80ebea3c2614": {
         "image_set": "building_1374_images_01_50",
@@ -57,6 +70,10 @@ MODEL_IMAGE_PROFILES = {
         "label": "building_1374",
         "file": "building_1374_50views.glb",
         "cache": "building_1374_images_01_50.lamp_cache.json",
+        "caches": {
+            "lamp": "building_1374_images_01_50.lamp_cache.json",
+            "pace_final": "building_1374_images_01_50.pace_cache.json",
+        },
     },
 }
 
@@ -237,6 +254,7 @@ def build_html(
         "image_sets": {name: [p.name for p in images] for name, images in image_sets.items()},
         "default_image_set": default_image_set,
         "model_image_profiles": MODEL_IMAGE_PROFILES,
+        "prediction_providers": PREDICTION_PROVIDERS,
         "models": [{"hash": model_hash, **profile} for model_hash, profile in MODEL_IMAGE_PROFILES.items()],
         "default_model_hash": DEFAULT_MODEL_HASH,
     }
@@ -258,7 +276,11 @@ def serve(
 ) -> None:
     page = html.encode("utf-8")
     image_paths = {set_name: {p.name: p for p in images} for set_name, images in image_sets.items()}
-    cache_names = {profile["cache"] for profile in MODEL_IMAGE_PROFILES.values()}
+    cache_names = {
+        name
+        for profile in MODEL_IMAGE_PROFILES.values()
+        for name in profile.get("caches", {"lamp": profile["cache"]}).values()
+    }
     model_paths = {profile["file"]: MODEL_LIBRARY_DIR / profile["file"] for profile in MODEL_IMAGE_PROFILES.values()}
     assets = {
         "/orbit_math.js": PROJECT_DIR / "orbit_math.js",
