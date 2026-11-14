@@ -1,4 +1,4 @@
-# VGGT + LaMP 建筑与相机轨迹可视化工具
+# PairUAV预测结果可视化工具
 
 `feat/render-cache`：本地 GLB 点云/网格浏览、圆形 splat 与 EDL、离线 LaMP 缓存、轨迹角度放置。运行前端只需 Python 3.9+ 和支持 WebGL2 的 Chrome/Edge；不需要 CDN、npm 或第三方 Python 包。
 

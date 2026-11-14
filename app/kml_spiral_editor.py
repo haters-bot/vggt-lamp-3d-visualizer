@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive 3D editor for a GLB building model and a KML LookAt trajectory."""
+"""PairUAV prediction result visualizer."""
 
 from __future__ import annotations
 
@@ -413,7 +413,7 @@ def serve(
 
     server = ThreadingHTTPServer((host, port), Handler)
     url = f"http://{host}:{port}/"
-    print(f"KML 3D editor: {url}")
+    print(f"PairUAV prediction result visualizer: {url}")
     if open_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
