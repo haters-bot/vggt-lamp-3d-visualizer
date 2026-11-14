@@ -18,7 +18,7 @@
   input[type=checkbox]{accent-color:var(--academic)}.control{margin:9px 0}.control-head{display:grid;grid-template-columns:1fr 82px;gap:8px;align-items:center}.control input[type=range]{width:100%;accent-color:var(--academic)}
   .checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.checks label{display:flex;align-items:center;gap:6px}
   .buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}button{border:1px solid var(--rule-strong);background:#f0ede6;color:var(--ink);border-radius:3px;padding:8px;cursor:pointer;box-shadow:0 1px 0 #fff inset}button:hover{background:#e7e3da;border-color:#9f9b92}button.primary{background:var(--academic);border-color:var(--academic-deep);color:#fff;box-shadow:none}button.primary:hover{background:var(--academic-deep)}
-  .hint{font-size:10.5px;line-height:1.58;color:var(--muted);margin:7px 0}.status{position:absolute;left:14px;bottom:102px;max-width:min(720px,75%);padding:8px 11px;border:1px solid #c9c5bb;border-radius:3px;background:#fffdfae8;color:var(--ink-soft);font-size:11px;box-shadow:0 4px 14px #625b4c1a;pointer-events:none}
+  .hint{font-size:10.5px;line-height:1.58;color:var(--muted);margin:7px 0}.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
   .report{margin-top:8px;padding:8px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb;color:var(--ink-soft);font-size:10.5px;line-height:1.58}.report strong{color:var(--ink)}.report.warn{border-color:#c9a47d;background:#f7efe4;color:var(--warn)}
   details.settings-panel{margin-top:16px;border:1px solid var(--rule-strong);border-radius:4px;background:#f5f2eb}details.settings-panel>summary{display:flex;align-items:center;justify-content:space-between;padding:10px 11px;color:var(--academic-deep);font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer;user-select:none;list-style:none}details.settings-panel>summary::-webkit-details-marker{display:none}details.settings-panel>summary:after{content:'展开';color:var(--muted);font-size:9.5px;font-weight:400;letter-spacing:0}html[lang="en"] details.settings-panel>summary:after{content:'Expand'}details.settings-panel[open]>summary{border-bottom:1px solid var(--rule)}details.settings-panel[open]>summary:after{content:'收起'}html[lang="en"] details.settings-panel[open]>summary:after{content:'Collapse'}.settings-body{padding:1px 11px 12px}.settings-body h3:first-child{margin-top:13px}
   details.advanced{margin-top:10px;border:1px solid var(--rule);border-radius:3px;background:#f5f2eb}details.advanced summary{padding:9px 10px;color:var(--ink-soft);font-size:11px;cursor:pointer;user-select:none}details.advanced[open] summary{border-bottom:1px solid var(--rule)}.advanced-body{padding:2px 10px 10px}
@@ -36,7 +36,6 @@
     aside>.hint{display:none}#runLamp{min-height:36px}details.settings-panel{margin-top:8px}details.settings-panel>summary{min-height:38px;padding:8px 10px}
     .help{display:none}.camera-preview{left:8px;right:8px;top:8px;width:auto;max-height:calc(100% - 94px);overflow:auto}.preview-canvas{height:210px}.preview-head,.preview-tools{padding:7px 8px}
     .timeline-picker{left:8px;right:8px;bottom:calc(7px + env(safe-area-inset-bottom));padding:7px 9px 8px}.timeline-head{font-size:9.5px}.timeline-head span:last-child{display:none}.timeline-track{height:22px;margin:18px 4px 1px}.timeline-tick{top:7px;height:6px}.timeline-tick.major{top:4px;height:12px}.timeline-marker{width:20px;height:20px}.timeline-marker.prediction{width:17px;height:17px}.timeline-marker span{bottom:22px;font-size:8.5px}
-    .status{left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:none;padding:6px 8px;font-size:9.5px}
     button,select,input{min-height:34px}
   }
   @media(max-width:640px) and (orientation:portrait){
@@ -54,7 +53,6 @@
 <aside>
   <h2 data-i18n="selectModel">选择建筑模型</h2>
   <div id="modelPicker" class="model-picker" aria-label="内置建筑模型" data-i18n-aria="modelPickerAria"></div>
-  <div class="hint" data-i18n="modelHint">切换模型会自动加载对应的实拍照片与预测缓存。</div>
 
   <h3 data-i18n="selectPair">选择起点与终点</h3>
   <div class="pair-grid">
@@ -131,7 +129,7 @@
       <div id="timelineHover" class="timeline-hover"><img id="timelineHoverImage" alt="时间轴图片预览" data-i18n-alt="timelinePreviewAlt"><span id="timelineHoverLabel"></span></div>
     </div>
   </div>
-  <div id="status" class="status" data-i18n="statusLoading">三维组件加载中…</div>
+  <div id="status" class="sr-only" aria-live="polite" data-i18n="statusLoading">三维组件加载中…</div>
 </main>
 </div>
 
